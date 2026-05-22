@@ -1,4 +1,79 @@
 {% extends "base.html" %}
+{% block title %} Registrazione {% endblock %}
+
 {% block content %}
-    
+    {# Torna Indietro alla pagina iniziale #}
+    <div class="has-text-right-desktop">
+        <a href="{% url 'index' %}" class="button is-small is-text has-text-link">
+            <span class="icon is-small"><i class="fas fa-sign-in-alt"></i></span>
+            <span>Pagina Iniziale</span>
+        </a>
+    </div>
+    <section class="section">
+        <div class="container">
+            <div class="columns is-centered">
+                <div class="column is-one-third">
+
+                    {# Box -- card bianca #}
+                    <div class="box">
+                        <h1 class="title is-4 has-text-centered">Registrazione</h1>
+
+                        {# Messaggio di errore (se presente) --> #}
+                        {% if error %}
+                            <div class="notification is-danger">
+                                <button class="delete "></button>
+
+                                {{ error }}
+                            </div>
+                        {% endif %}
+
+                        {# Messaggio di successo #}
+                        {% if success %}
+                            <div class="notification is-success">
+                                {{ success }}
+                            </div>
+                        {% endif %}
+
+                        {# Campo Email #}
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="field">
+                                <label class="label">Username o Email</label>
+                                <div class="control has-icons-left">
+                                    <label>
+                                        <input class="input" type="text" name="user&email" placeholder="diablo123@gmail.com/Senior04"
+                                               required>
+                                    </label>
+                                    <span class="icon is-small is-left">
+                                      <i class="fas fa-envelope"></i>
+                                    </span>
+                                </div>
+                            </div>
+
+                            {# Campo Password #}
+                            <div class="field">
+                                <label class="label">Password</label>
+                                <div class="control has-icons-left">
+                                    <label for="password"></label><input class="input" type="text" id="password"
+                                                                         name="password"
+                                                                         placeholder="*********" required>
+                                    <span class="icon is-small is-left">
+                                        <i class="fas fa-lock"></i>
+                                    </span>
+                                </div>
+                            </div>
+
+                            {# Bottone #}
+                            <div class="field">
+                                <button type="submit" class="button is-link is-fullwidth">REGISTRATI</button>
+                            </div>
+                        </form>
+                        <div class="has-text-centered mt-4">
+                            <p>Hai già un account? <a href="{% url 'login' %}" class="has-text-link">Accedi</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 {% endblock %}

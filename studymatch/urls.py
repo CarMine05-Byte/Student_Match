@@ -21,6 +21,8 @@ from studymatch import views
 urlpatterns = [
     path('', views.index, name='index'),
     path('login/', views.login, name='login'),
-    path('registration/', views.registration, name='registration'),
-    path('homepage/', views.home, name='home')
+    path('register/', views.registration, name='registration'),
+    path('homepage/', views.home, name='home'),
+    path('create_group', views.create_group, name='create_group')
+
 ]

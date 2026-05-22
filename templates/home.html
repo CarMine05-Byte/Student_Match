@@ -1,0 +1,64 @@
+{% block title %}StudentMatch{% endblock %}
+
+{% block content %}
+    <section class="section">
+        <div class="container">
+
+            {# Benvenuto #}
+            <div class="box">
+                <h1 class="title is-3">Ciao, {{ username }}</h1>
+                <p class="subtitle is-6">
+                    Anno di corso: {{ Student.year_course }}
+                </p>
+
+                <a href="{% url 'create_group' %}" class="button is-link">
+                    Crea Gruppo Studio
+                </a>
+            </div>
+            <div class="columns">
+
+                <!-- Gruppi Disponibili -->
+                <div class="column is-two-thirds">
+                    <h2 class="title is-4">Gruppi Disponibili</h2>
+                    {% for group in group_disp %}
+                        <div class="box">
+                            <h3 class="title is-5">{{ group.name }}</h3>
+                            <p class="title is3"> {{ group.description }}</p>
+
+                            <div class="tags mt-3">
+                                <span class="tag is-info">{{ group.name_exam }}</span>
+                                <span class="tag is-light">{{ group.max }}Posti Max</span>
+                                <span class="tag is-success">{{ group.state }}</span>
+                            </div>
+
+                            <a href="{% url 'group_detail' 'group.id_group' %}" class="button is-small is-link">
+                                Dettagli
+                            </a>
+                        </div>
+                    {% empty %}
+                        <div class="notification is-warning">
+                            Non ci sono gruppi disponibili per il tuo anno di corso
+                            <button class="delete"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- I miei Gruppi -->
+                <div class="column">
+                    <h2 class="title is-4">I miei Gruppi</h2>
+
+                    {% for partecipate in my_partecipation %}
+                        <div class="box">
+                            <h3 class="title is-6">{{ partecipate.id_group.name }}</h3>
+                            <p class="title is-6">{{ partecipate.state }}</p>
+                        </div>
+                    {% empty %}
+                        <div class="notification is-light">
+                            Non sei ancora iscritto a nessun gruppo.
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

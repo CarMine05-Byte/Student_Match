@@ -3,9 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
-    <link rel="stylesheet" href="{% static 'bulma.css' %}">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/bulma.min.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/custom.css' %}">
 </head>
-<body>
 
-</body>
+{% block content %}
+    <body>
+    {# Script per chiudere eventuali bottoni della classe delete, in caso compaiono degli warning notification #}
+    <script>
+        const deletes = document.querySelectorAll('.delete');
+        //Per ogni bottone trovato danger
+        deletes.forEach(function (deleteElements) {
+            deleteElements.addEventListener('click', function () {
+                this.parentElement.style.display = 'none';
+            })
+        });
+    </script>
+    </body>
+
+{% endblock %}
 </html>

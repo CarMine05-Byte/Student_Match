@@ -1,5 +1,120 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>StudentMatch</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/bulma.min.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/custom.css' %}">
+</head>
+<body class="has-background-dark has-text-white">
+
 {% block content %}
+    <section class="hero is-fullheight-with-navbar has-background-dark">
+        <div class="hero-body">
+            <div class="container">
+
+                <div class="columns is-vcentered">
+
+                    <!-- TESTO PRINCIPALE -->
+                    <div class="column is-6">
+                        <p class="subtitle has-text-info has-text-weight-semibold">
+                            Benvenuto in StudyMatchDB
+                        </p>
+
+                        <h1 class="title is-1 has-text-white">
+                            Trova il gruppo studio giusto per te
+                        </h1>
+
+                        <p class="subtitle is-4 has-text-light">
+                            Organizza lo studio, consulta gli esami disponibili, partecipa ai gruppi
+                            e accedi ai materiali condivisi con altri studenti.
+                        </p>
+
+                        <div class="buttons mt-5">
+                            <a href="{% url 'login' %}" class="button is-info is-medium">
+                                Accedi
+                            </a>
+
+                            <a href="{% url 'registration' %}" class="button is-light is-medium">
+                                Registrati
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- BOX INFORMATIVO -->
+                    <div class="column is-5 is-offset-1">
+                        <div class="box has-background-light">
+
+                            <h2 class="title is-4 has-text-dark">
+                                Cosa puoi fare?
+                            </h2>
+
+                            <div class="content has-text-dark">
+                                <p>
+                                    StudyMatch permette di gestire gruppi studio,
+                                    esami, tutor, materiali didattici e notifiche in un unico ambiente.
+                                </p>
+                            </div>
+
+                            <div class="columns is-multiline mt-4">
+
+                                <div class="column is-6">
+                                    <div class="notification is-info is-light">
+                                        <strong>Esami</strong>
+                                        <br>
+                                        Consulta gli esami disponibili.
+                                    </div>
+                                </div>
+
+                                <div class="column is-6">
+                                    <div class="notification is-success is-light">
+                                        <strong>Gruppi</strong>
+                                        <br>
+                                        Partecipa ai gruppi studio.
+                                    </div>
+                                </div>
+
+                                <div class="column is-6">
+                                    <div class="notification is-warning is-light">
+                                        <strong>Tutor</strong>
+                                        <br>
+                                        Ricevi supporto didattico.
+                                    </div>
+                                </div>
+
+                                <div class="column is-6">
+                                    <div class="notification is-danger is-light">
+                                        <strong>Materiali</strong>
+                                        <br>
+                                        Accedi alle risorse condivise.
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    {# Script per chiudere eventuali bottoni della classe delete, in caso compaiono degli warning notification #}
+    <script>
+        const deletes = document.querySelectorAll('.delete');
+        //Per ogni bottone trovato danger
+        deletes.forEach(function (deleteElements) {
+            deleteElements.addEventListener('click', function () {
+                this.parentElement.style.display = 'none';
+            })
+        });
+    </script>
 
 
 {% endblock %}
+</body>
+</html>

@@ -22,7 +22,11 @@ urlpatterns = [
     path('', views.index, name='index'),
     path('login/', views.login, name='login'),
     path('register/', views.registration, name='registration'),
-    path('homepage/', views.home, name='home'),
-    path('create_group', views.create_group, name='create_group')
+    path('home/', views.home, name='home'),
+    path('gruppi/', views.gruppi, name='gruppi'),
+    path('dettaglio_gruppo', views.dettaglio_gruppo, name='dettaglio_gruppo'),
+    path('crea_gruppo', views.crea_gruppo, name='crea_gruppo'),
+    path('esami', views.esame, name='esami'),
+    path('notifiche/', views.notifica, name='notifiche')
 
 ]

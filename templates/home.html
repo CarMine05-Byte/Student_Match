@@ -1,3 +1,4 @@
+{% extends "index.html" %}
 {% block title %}StudentMatch{% endblock %}
 
 {% block content %}
@@ -8,10 +9,10 @@
             <div class="box">
                 <h1 class="title is-3">Ciao, {{ username }}</h1>
                 <p class="subtitle is-6">
-                    Anno di corso: {{ Student.year_course }}
+                    Anno di corso: {{ Studente.anno_corso }}
                 </p>
 
-                <a href="{% url 'create_group' %}" class="button is-link">
+                <a href="{% url 'crea_gruppo' %}" class="button is-link">
                     Crea Gruppo Studio
                 </a>
             </div>
@@ -31,7 +32,7 @@
                                 <span class="tag is-success">{{ group.state }}</span>
                             </div>
 
-                            <a href="{% url 'group_detail' 'group.id_group' %}" class="button is-small is-link">
+                            <a href="{% url 'dettaglio_gruppo' 'gruppo.id_gruppo' %}" class="button is-small is-link">
                                 Dettagli
                             </a>
                         </div>

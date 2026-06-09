@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "index.html" %}
 {% block title %} Registrazione {% endblock %}
 
 {% block content %}
@@ -34,15 +34,30 @@
                             </div>
                         {% endif %}
 
-                        {# Campo Email #}
+
                         <form method="post">
                             {% csrf_token %}
+                            {# Campo Username #}
                             <div class="field">
-                                <label class="label">Username o Email</label>
+                                <label class="label">Username</label>
                                 <div class="control has-icons-left">
                                     <label>
-                                        <input class="input" type="text" name="user&email" placeholder="diablo123@gmail.com/Senior04"
-                                               required>
+                                        <input class="input" type="text" name="user" placeholder="Senior04" required>
+                                    </label>
+                                    <span class="icon is-small is-left">
+                                        <i class="fa-solid fa-user"></i>
+                                    </span>
+                                </div>
+                            </div>
+
+                            {# Campo Email #}
+                            <div class="field">
+                                <label class="label">Email</label>
+                                <div class="control has-icons-left">
+                                    <label>
+                                        <input class="input" type="email" name="email"
+                                               placeholder="diablo123@gmail.com"
+                                               >
                                     </label>
                                     <span class="icon is-small is-left">
                                       <i class="fas fa-envelope"></i>

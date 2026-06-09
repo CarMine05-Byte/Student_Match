@@ -12,19 +12,19 @@ class Utente(models.Model):
 
 
 class Studente(models.Model):
-    studente = models.ForeignKey(Utente, primary_key=True, on_delete=models.CASCADE, related_name="Studente")
+    studente = models.ForeignKey(Utente, on_delete=models.CASCADE, related_name="studente_profile")
     anno_corso = models.SmallIntegerField
     corso_laurea = models.CharField(max_length=100)
 
 
 class Tutor(models.Model):
-    tutor = models.ForeignKey(Utente, primary_key=True, on_delete=models.CASCADE, related_name="Tutor")
+    tutor = models.ForeignKey(Utente, on_delete=models.CASCADE, related_name="tutor_profile")
     dipartimento = models.CharField(max_length=128)
     area_competenza = models.CharField(max_length=128)
 
 
 class Admin(models.Model):
-    admin = models.ForeignKey(Utente, primary_key=True, on_delete=models.CASCADE, related_name="Admin")
+    admin = models.ForeignKey(Utente, on_delete = models.CASCADE, related_name = "admin_profile")
     livello = models.SmallIntegerField
     data_nomina = models.DateField
 
@@ -33,7 +33,6 @@ class Esame(models.Model):
     id_esame = models.SmallAutoField(primary_key=True)
     nome_esame = models.CharField(max_length=50)
     corso = models.CharField(max_length=100)
-    anno_corso = models.SmallIntegerField
     semestre = models.SmallIntegerField
     cfu = models.SmallIntegerField
 
@@ -43,7 +42,7 @@ class Gruppo(models.Model):
     nome_gruppo = models.CharField(max_length=50)
     chat = models.TextField
     descrizione = models.TextField
-    max_partecipanti = models.SmallIntegerField(max_length=100)
+    max_partecipanti = models.SmallIntegerField()
 
 
 class Materiale(models.Model):
@@ -71,38 +70,41 @@ class Partecipazione(models.Model):
     id_gruppo = models.ForeignKey(Gruppo, on_delete=models.CASCADE, related_name="gruppo_utente")
     data_iscrizione = models.DateField(auto_now_add=True)
     stato = models.BooleanField(default=False)
+
     class Meta:
-        unique_together = ('studente','id_gruppo')
+        unique_together = ('studente', 'id_gruppo')
 
 
 class Supporto(models.Model):
     tutor = models.ForeignKey(Tutor, on_delete=models.CASCADE, related_name="tutor_gruppo")
     id_gruppo = models.ForeignKey(Gruppo, on_delete=models.CASCADE, related_name="gruppo_tutor")
     punteggio = models.IntegerField(null=True, blank=True)
+
     class Meta:
-        unique_together = ('tutor','id_gruppo')
+        unique_together = ('tutor', 'id_gruppo')
 
 
 class Gestione(models.Model):
     admin = models.ForeignKey(Admin, on_delete=models.CASCADE, related_name="admin_gruppo")
-    id_gruppo = models.ForeignKey(Gruppo,  on_delete=models.CASCADE, related_name="gruppo_admin")
+    id_gruppo = models.ForeignKey(Gruppo, on_delete=models.CASCADE, related_name="gruppo_admin")
 
     class Meta:
         unique_together = ('admin', 'id_gruppo')
 
+
 class Svolgimento(models.Model):
     studente = models.ForeignKey(Studente, on_delete=models.CASCADE, related_name="studente_successo")
-    id_esame = models.ForeignKey(Esame,  on_delete=models.CASCADE, related_name="esame_svolto")
+    id_esame = models.ForeignKey(Esame, on_delete=models.CASCADE, related_name="esame_svolto")
     data_svolgimento = models.DateField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('studente','id_esame')
+        unique_together = ('studente', 'id_esame')
 
 
 class Assegnazione(models.Model):
     id_esame = models.ForeignKey(Esame, on_delete=models.CASCADE, related_name="esame_gruppo")
-    id_gruppo = models.ForeignKey(Gruppo,  on_delete=models.CASCADE, related_name="gruppo_esame")
-    periodo = models.SmallIntegerField(max_length=50)
+    id_gruppo = models.ForeignKey(Gruppo, on_delete=models.CASCADE, related_name="gruppo_esame")
+    periodo = models.SmallIntegerField()
 
     class Meta:
-        unique_together = ('id_esame','id_gruppo')
+        unique_together = ('id_esame', 'id_gruppo')

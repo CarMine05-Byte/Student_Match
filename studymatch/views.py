@@ -1,7 +1,7 @@
-from django.contrib.auth.hashers import make_password
-from django.shortcuts import render, redirect
+from django.shortcuts import render
 
 from studymatch.models import *
+from studymatch.utils import hash_password, verify_password
 
 
 def index(request):
@@ -14,16 +14,19 @@ def login(request):
         # email = request.POST.get("email")
         pwd = request.POST.get("pass")
         # Use Hash lib for hash password
-        # pwd = hashlib.sha256(pwd.encode()).hexdigest()
-        print(f"Username : {user} , Password: {pwd}")
+        print(f"Username : {user}")
 
-        user_valid = Studente.objects.filter(studente__utente=user, studente__password=pwd)
-        # select * from Student where username ="$user" and password = $pwd
+        user_valid = Utente.objects.filter(utente=user).first()
+        # select * from Student where utente ="$user"
 
-        if user_valid.exists():
-            return redirect('home')
+        if user_valid and verify_password(pwd, user_valid.password):  # verifichiamo la password
+            print(f"Utente Verificato : {user}")
+
+            return render(request, 'home.html',
+                          {'user': user_valid, 'Success': "Autenticazione avvenuta con successo!"})
         else:
             return render(request, 'login.html', {'error': 'Credenziali non valide', 'user': user})
+
     return render(request, 'login.html')
 
 
@@ -42,31 +45,31 @@ def registration(request):
 
         if Utente.objects.filter(email=email).exists():
             return render(request, 'registration.html', {'error': 'Email già registrata.'})
-
+        new_user = None  # definiamo una variabile Null
         # Salva l'utente
 
         try:
             new_user = Utente.objects.create(
                 utente=user,
                 email=email,
-                password=make_password(pwd),
+                password=hash_password(pwd),
                 ruolo="studente"
             )
-
+            # Creiamo lo studente
             Studente.objects.create(
                 studente=new_user
             )
 
-        except Exception as e:
-            print(f"Errore nella creazione dello studente: {e}")
+        except Exception as e:  # Errore di default
+            print(f"Errore nella creazione oggetto utente-studente: {e}")
 
-            if "new_user" in locals():
-               new_user.delete()
+            if new_user is not None:
+                new_user.delete()
 
             return render(request, 'registration.html', {'error': 'Errore Creazione Profilo'})
 
         print(f"Studente {user} registrato con successo!")
-        return render(request, 'home.html',{"user" : new_user, "success" : "Registrazione completata con successo"})
+        return render(request, 'home.html', {"user": new_user, "success": "Registrazione completata con successo"})
 
     return render(request, 'registration.html')
 

@@ -5,7 +5,7 @@ from django.db.models import ForeignKey
 class Utente(models.Model):
     utente = models.CharField(max_length=50, primary_key=True)
     email = models.CharField(max_length=128)
-    password = models.CharField(max_length=20)
+    password = models.CharField(max_length=256)
     ruolo = models.CharField(max_length=20, default="studente")
     nome = models.CharField(max_length=50)
     cognome = models.CharField(max_length=50)

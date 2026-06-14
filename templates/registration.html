@@ -39,11 +39,10 @@
                             {% csrf_token %}
                             {# Campo Username #}
                             <div class="field">
-                                <label class="label">Username</label>
+                                <label class="label" for="user">Username</label>
                                 <div class="control has-icons-left">
-                                    <label>
-                                        <input class="input" type="text" name="user" placeholder="Senior04" required>
-                                    </label>
+                                    <input class="input" type="text" id="user" name="user" placeholder="Senior04"
+                                           required>
                                     <span class="icon is-small is-left">
                                         <i class="fa-solid fa-user"></i>
                                     </span>
@@ -52,13 +51,11 @@
 
                             {# Campo Email #}
                             <div class="field">
-                                <label class="label">Email</label>
+                                <label class="label" for="email">Email</label>
                                 <div class="control has-icons-left">
-                                    <label>
-                                        <input class="input" type="email" name="email"
-                                               placeholder="diablo123@gmail.com"
-                                        >
-                                    </label>
+                                    <input class="input" type="email" id="email" name="email"
+                                           placeholder="diablo123@gmail.com"
+                                    >
                                     <span class="icon is-small is-left">
                                       <i class="fas fa-envelope"></i>
                                     </span>
@@ -67,14 +64,80 @@
 
                             {# Campo Password #}
                             <div class="field">
-                                <label class="label">Password</label>
+                                <label class="label" for="pass">Password</label>
                                 <div class="control has-icons-left">
-                                    <label for="pass"></label><input class="input" type="text" id="pass"
-                                                                     name="pass"
-                                                                     placeholder="*********" required>
+                                    <input class="input" type="password" id="pass" name="pass"
+                                           placeholder="*********" required>
                                     <span class="icon is-small is-left">
                                         <i class="fas fa-lock"></i>
                                     </span>
+                                </div>
+                            </div>
+
+                            {# Campo Professione scelta ruolo #}
+                            <div class="field">
+                                <label class="label" for="ruolo">Registrati come</label>
+                                <div class="control">
+                                    <div class="select is-fullwidth">
+                                        <select name="ruolo" id="ruolo" required>
+                                            <option value="">Seleziona un ruolo</option>
+                                            <option value="studente">Studente</option>
+                                            <option value="tutor">Tutor</option>
+                                            <option value="admin">Admin</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            {# Campo Studente #}
+                            <div id="campi-studente" hidden>
+                                <div class="field">
+                                    <label class="label" for="anno_corso">Anno di corso</label>
+                                    <div class="control">
+                                        <input class="input" type="number" id="anno_corso" name="anno_corso" min="1"
+                                               max="5">
+                                    </div>
+                                </div>
+                                <div class="field">
+
+                                    <label class="label" for="corso_laurea_stu">Corso di Laurea</label>
+                                    <div class="control">
+                                        <input class="input" type="text" id="corso_laurea_stu" name="corso_laurea_stu">
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            {# Campo Tutor #}
+                            <div id="campi-tutor" hidden>
+                                <div class="field">
+                                    <label class="label" for="dipartimento">Dipartimento</label>
+                                    <div class="control">
+                                        <input class="input" type="text" id="dipartimento" name="dipartimento">
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <label class="label" for="area_competenza">Area Competenza</label>
+                                    <div class="control">
+                                        <input class="input" type="text" id="area_competenza" name="area_competenza">
+                                    </div>
+                                </div>
+
+                                <div class="field">
+                                    <label class="label" for="corso_laurea_tut">Corso di Laurea</label>
+                                    <div class="control">
+                                        <input class="input" type="text" id="corso_laurea_tut" name="corso_laurea_tut">
+                                    </div>
+                                </div>
+                            </div>
+                            {# Campo Admin #}
+                            <div id="campi-admin" hidden>
+                                <div class="field">
+                                    <label class="label" for="codice_invito">Codice Invito</label>
+                                    <div class="control">
+                                        <input class="input" type="password" id="codice_invito" name="codice_invito">
+                                    </div>
                                 </div>
                             </div>
 
@@ -91,4 +154,28 @@
             </div>
         </div>
     </section>
+
+    <script>
+        const ruoloSelect = document.getElementById("ruolo");
+        const campiStudente = document.getElementById("campi-studente");
+        const campiTutor = document.getElementById("campi-tutor");
+        const campiAdmin = document.getElementById("campi-admin");
+
+        function mostraCampiRuolo() {
+            campiStudente.hidden = true;
+            campiTutor.hidden = true;
+            campiAdmin.hidden = true;
+
+            if (ruoloSelect.value === "studente") {
+                campiStudente.hidden = false;
+            } else if (ruoloSelect.value === "tutor") {
+                campiTutor.hidden = false;
+            } else if (ruoloSelect.value === "admin") {
+                campiAdmin.hidden = false;
+            }
+        }
+
+        ruoloSelect.addEventListener("change", mostraCampiRuolo);
+        mostraCampiRuolo();
+    </script>
 {% endblock %}

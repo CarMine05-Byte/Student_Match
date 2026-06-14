@@ -21,10 +21,11 @@ class Tutor(models.Model):
     tutor = models.ForeignKey(Utente, on_delete=models.CASCADE, related_name="tutor_profile")
     dipartimento = models.CharField(max_length=128)
     area_competenza = models.CharField(max_length=128)
+    laurea = models.CharField(max_length=100, null=True, blank=True, default=1)
 
 
 class Admin(models.Model):
-    admin = models.ForeignKey(Utente, on_delete = models.CASCADE, related_name = "admin_profile")
+    admin = models.ForeignKey(Utente, on_delete=models.CASCADE, related_name="admin_profile")
     livello = models.SmallIntegerField
     data_nomina = models.DateField
 

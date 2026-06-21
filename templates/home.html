@@ -7,58 +7,175 @@
 
             {# Benvenuto #}
             <div class="box">
-                <h1 class="title is-3">Ciao, {{ studente }}</h1>
-                <p class="subtitle is-6">
-                    Anno di corso: {{ studente.anno_corso }}
-                </p>
-
+                {% if studente %}
+                    <h1 class="title is-3">Ciao, {{ studente.studente.utente }}</h1>
+                    <p class="subtitle is-6"> {{ studente.corso_laurea }}
+                        &middot;Anno di corso: {{ studente.anno_corso }}
+                    </p>
+                {% elif tutor %}
+                    <h1 class="title is-3">Ciao, {{ tutor.tutor.utente }}</h1>
+                    <p class="subtitle is-6">
+                        {{ tutor.dipartimento }} &middot; {{ tutor.area_competenza }}
+                    </p>
+                {% elif admin %}
+                    <h1 class="title is-3">Ciao, {{ admin.admin.utente }}</h1>
+                    <p class="subtitle is-6">
+                        Admin &middot; Livello {{ admin.livello }}
+                    </p>
+                {% endif %}
                 <a href="{% url 'crea_gruppo' %}" class="button is-link">
                     Crea Gruppo Studio
                 </a>
             </div>
+
             <div class="columns">
-
-                <!-- Gruppi Disponibili -->
-                <div class="column is-two-thirds">
-                    <h2 class="title is-4">Gruppi Disponibili</h2>
-                    {% for group in group_disp %}
-                        <div class="box">
-                            <h3 class="title is-5">{{ group.name }}</h3>
-                            <p class="title is3"> {{ group.description }}</p>
-
-                            <div class="tags mt-3">
-                                <span class="tag is-info">{{ group.name_exam }}</span>
-                                <span class="tag is-light">{{ group.max }}Posti Max</span>
-                                <span class="tag is-success">{{ group.state }}</span>
+                {% if studente %}
+                    <!-- Gruppi Disponibili -->
+                    <div class="column is-two-thirds">
+                        <h2 class="title is-4">Gruppi Disponibili</h2>
+                        {% for gruppo in grup_stud %}
+                            <div class="box">
+                                <h3 class="title is-5">{{ gruppo.nome_gruppo }}</h3>
+                                <p class="title is-3"> {{ gruppo.descrizione }}</p>
+                                <div class="tags mt-3">
+                                    {% for assegnazione in gruppo.gruppo_esame.all %}
+                                        <span class="tag is-info">{{ assegnazione.id_esame.nome_esame }}</span>
+                                    {% endfor %}
+                                    <span class="tag is-light">{{ gruppo.max_partecipanti }}Posti Max</span>
+                                </div>
+                                <a href="{% url 'dettaglio_gruppo'%}"
+                                   class="button is-small is-link">
+                                    Dettagli
+                                </a>
                             </div>
+                        {% empty %}
+                            <div class="notification is-warning">
+                                Non ci sono gruppi disponibili per il tuo anno di corso
+                                <button class="delete"></button>
+                            </div>
+                        {% endfor %}
+                    </div>
 
-                            <a href="{% url 'dettaglio_gruppo' 'gruppo.id_gruppo' %}" class="button is-small is-link">
-                                Dettagli
-                            </a>
-                        </div>
-                    {% empty %}
-                        <div class="notification is-warning">
-                            Non ci sono gruppi disponibili per il tuo anno di corso
-                            <button class="delete"></button>
-                        </div>
-                    {% endfor %}
-                </div>
+                    <!-- I miei Gruppi -->
+                    <div class="column">
+                        <h2 class="title is-4">I miei Gruppi</h2>
 
-                <!-- I miei Gruppi -->
-                <div class="column">
-                    <h2 class="title is-4">I miei Gruppi</h2>
+                        {% for partecipazione in part_stud %}
+                            <div class="box">
+                                <h3 class="title is-6">{{ partecipazione.id_gruppo.nome_gruppo }}</h3>
+                                <div class="tags">
+                                    {% if partecipazione.stato %}
+                                        <span class="tag is-success">Confermato</span>
+                                    {% else %}
+                                        <span class="tag is-warning">In Attesa</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div class="notification is-light">
+                                Non sei ancora iscritto a nessun gruppo.
+                            </div>
+                        {% endfor %}
+                    </div>
 
-                    {% for partecipate in my_partecipation %}
-                        <div class="box">
-                            <h3 class="title is-6">{{ partecipate.id_group.name }}</h3>
-                            <p class="title is-6">{{ partecipate.state }}</p>
-                        </div>
-                    {% empty %}
-                        <div class="notification is-light">
-                            Non sei ancora iscritto a nessun gruppo.
-                        </div>
-                    {% endfor %}
-                </div>
+                {% elif tutor %}
+                    <!-- Gruppi Disponibili -->
+                    <div class="column is-two-thirds">
+                        <h2 class="title is-4">Gruppi Disponibili</h2>
+                        {% for gruppo in grup_disp_tut %}
+                            <div class="box">
+                                <h3 class="title is-5">{{ gruppo.nome_gruppo }}</h3>
+                                <p class="title is-3"> {{ gruppo.descrizione }}</p>
+                                <div class="tags mt-3">
+                                    {% for assegnazione in gruppo.gruppo_esame.all %}
+                                        <span class="tag is-info">{{ assegnazione.id_esame.nome_esame }}</span>
+                                    {% endfor %}
+                                    <span class="tag is-light">{{ gruppo.max_partecipanti }}Posti Max</span>
+                                </div>
+                                <a href="{% url 'dettaglio_gruppo'%}"
+                                   class="button is-small is-link">
+                                    Dettagli
+                                </a>
+                            </div>
+                        {% empty %}
+                            <div class="notification is-warning">
+                                Al momento tutti i gruppi hanno già un tutor
+                                <button class="delete"></button>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- I miei Gruppi -->
+                    <div class="column">
+                        <h2 class="title is-4">I miei Gruppi</h2>
+
+                        {% for supporto in supp_tut %}
+                            <div class="box">
+                                <h3 class="title is-6">{{ supporto.id_gruppo.nome_gruppo }}</h3>
+                                <div class="tags">
+                                    {% if supporto.stato %}
+                                        <span class="tag is-success">Confermato</span>
+                                    {% else %}
+                                        <span class="tag is-warning">In Attesa</span>
+                                    {% endif %}
+                                    {% if supporto.punteggio %}
+                                        <span class="tag is-light">punteggio: {{ supporto.punteggio }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div class="notification is-light">
+                                Non segui ancora nessun gruppo.
+                            </div>
+                        {% endfor %}
+                    </div>
+
+
+
+
+                {% elif admin %}
+                    <!-- Gruppi Disponibili -->
+                    <div class="column is-two-thirds">
+                        <h2 class="title is-4">Gruppi Disponibili</h2>
+                        {% for gruppo in gruppi_disp %}
+                            <div class="box">
+                                <h3 class="title is-5">{{ gruppo.nome_gruppo }}</h3>
+                                <p class="title is-3"> {{ gruppo.descrizione }}</p>
+                                <div class="tags mt-3">
+                                    {% for assegnazione in gruppo.gruppo_esame.all %}
+                                        <span class="tag is-info">{{ assegnazione.id_esame.nome_esame }}</span>
+                                    {% endfor %}
+                                    <span class="tag is-light">{{ gruppo.max_partecipanti }}Posti Max</span>
+                                </div>
+                                <a href="{% url 'dettaglio_gruppo'%}"
+                                   class="button is-small is-link">
+                                    Dettagli
+                                </a>
+                            </div>
+                        {% empty %}
+                            <div class="notification is-warning">
+                                Non ci sono gruppi disponibili da gestire
+                                <button class="delete"></button>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- I miei Gruppi -->
+                    <div class="column">
+                        <h2 class="title is-4">I miei Gruppi</h2>
+
+                        {% for gruppo in grup_admin %}
+                            <div class="box">
+                                <h3 class="title is-6">{{ gruppo.nome_gruppo }}</h3>
+                                <p> {{ gruppo.descrizione }}</p>
+                            </div>
+                        {% empty %}
+                            <div class="notification is-light">
+                                Non gestisci ancora nessun gruppo.
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
             </div>
         </div>
     </section>

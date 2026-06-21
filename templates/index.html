@@ -8,7 +8,16 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/custom.css' %}">
 </head>
-
+{# Script per chiudere eventuali bottoni della classe delete, in caso compaiono degli warning o danger notification #}
+<script>
+    const deletes = document.querySelectorAll('.delete');
+    //Per ogni bottone trovato danger
+    deletes.forEach(function (deleteElements) {
+        deleteElements.addEventListener('click', function () {
+            this.parentElement.style.display = 'none';
+        })
+    });
+</script>
 <body class="has-background-dark has-text-white">
 
 {% block content %}
@@ -104,16 +113,7 @@
         </div>
     </section>
 
-    {# Script per chiudere eventuali bottoni della classe delete, in caso compaiono degli warning notification #}
-    <script>
-        const deletes = document.querySelectorAll('.delete');
-        //Per ogni bottone trovato danger
-        deletes.forEach(function (deleteElements) {
-            deleteElements.addEventListener('click', function () {
-                this.parentElement.style.display = 'none';
-            })
-        });
-    </script>
+
 
 
 {% endblock %}

@@ -22,9 +22,17 @@
                         {% if error %}
                             <div class="notification is-danger">
                                 <button class="delete "></button>
-
                                 {{ error }}
                             </div>
+                        {% endif %}
+
+                        {#  Messaggio di warning  #}
+                        {% if warning %}
+                            <div class="notification is-warning">
+                                <button class="delete"></button>
+                                {{ warning }}
+                            </div>
+
                         {% endif %}
 
                         {# Messaggio di successo #}

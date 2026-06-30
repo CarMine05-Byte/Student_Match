@@ -27,6 +27,7 @@ urlpatterns = [
     path('dettaglio_gruppo', views.dettaglio_gruppo, name='dettaglio_gruppo'),
     path('crea_gruppo', views.crea_gruppo, name='crea_gruppo'),
     path('esami', views.esame, name='esami'),
-    path('notifiche/', views.notifica, name='notifiche')
+    path('notifiche/', views.notifica, name='notifiche'),
+path('logout/', views.logout, name='logout')
 
 ]

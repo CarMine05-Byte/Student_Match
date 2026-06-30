@@ -1,0 +1,32 @@
+Informatica
+Ingegneria Informatica
+Ingegneria Elettronica
+Ingegneria Gestionale
+Ingegneria Meccanica
+Ingegneria Civile
+Matematica
+Fisica
+Chimica
+Biologia
+Biotecnologie
+Farmacia
+Medicina e Chirurgia
+Odontoiatria
+Scienze Infermieristiche
+Economia e Management
+Economia Aziendale
+Scienze Politiche
+Giurisprudenza
+Sociologia
+Scienze della Comunicazione
+Psicologia
+Lingue e Culture Moderne
+Lettere
+Filosofia
+Architettura
+Design
+Scienze Motorie
+Statistica
+Data Science
+Intelligenza Artificiale
+Cybersecurity

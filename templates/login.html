@@ -23,7 +23,7 @@
                         {% else %}
                         {% endif %}
                         {# Campo Email #}
-                        <form method="post" action="{% url 'home' %}">
+                        <form method="post" action="{% url 'login' %}">
                             {% csrf_token %}
                             <div class="field">
                                 <label class="label">Username o Email</label>

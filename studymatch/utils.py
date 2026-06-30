@@ -1,6 +1,10 @@
 import hashlib
 import hmac
 import os
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent
+path = BASE_DIR / "data" / "corsi_laurea.txt"
 
 
 def hash_password(password):
@@ -33,3 +37,8 @@ def verify_password(password, stored_password):
 
     except ValueError:
         return False
+
+
+def get_corsi_laurea():
+    with open(path, "r", encoding="utf-8") as f:
+        return [line.strip() for line in f if line.strip()]

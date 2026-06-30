@@ -100,6 +100,7 @@
 
                             {# Campo Studente #}
                             <div id="campi-studente" hidden>
+
                                 <div class="field">
                                     <label class="label" for="anno_corso">Anno di corso</label>
                                     <div class="control">
@@ -107,11 +108,19 @@
                                                max="5">
                                     </div>
                                 </div>
-                                <div class="field">
 
-                                    <label class="label" for="corso_laurea_stu">Corso di Laurea</label>
+                                <div class="field">
+                                    <label class="label" for="corso_laurea_stu">Corso di laurea</label>
                                     <div class="control">
-                                        <input class="input" type="text" id="corso_laurea_stu" name="corso_laurea_stu">
+                                        <div class="select is-fullwidth">
+                                            <select name="corso_laurea_stu" id="corso_laurea_stu" required>
+                                                <option disabled selected>Seleziona corso</option>
+
+                                                {% for corso in corsi %}
+                                                    <option value="{{ corso }}">{{ corso }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
 

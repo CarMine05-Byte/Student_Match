@@ -43,8 +43,8 @@ class Esame(models.Model):
 class Gruppo(models.Model):
     id_gruppo = models.SmallAutoField(primary_key=True)
     nome_gruppo = models.CharField(max_length=50)
-    chat = models.TextField(default=" ")
-    descrizione = models.TextField(default=" ")
+    chat = models.TextField(null=True, blank=True)
+    descrizione = models.TextField(null=True, blank=True)
     max_partecipanti = models.SmallIntegerField(default=0)
 
 

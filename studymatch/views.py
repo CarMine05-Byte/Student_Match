@@ -1,7 +1,7 @@
 from django.shortcuts import render
 
 from .models import *
-from .utils import hash_password, verify_password
+from .utils import hash_password, verify_password, get_corsi_laurea
 
 
 def index(request):
@@ -15,33 +15,26 @@ def login(request):
         pwd = request.POST.get("pass")
         # Use Hash lib for hash password
         print(f"Username : {user}")
-        azione = None
         user_valid = Utente.objects.filter(utente=user).first()
         # select * from Student where utente ="$user"
         if user_valid and verify_password(pwd, user_valid.password):  # verifichiamo la password
             print(f"Utente Verificato : {user}")
-            ruolo = user_valid.ruolo
-            print(ruolo)
-            gruppo_disp = Gruppo.objects.all()
 
-            context = {
-                'utente': user,
-                'gruppo': gruppo_disp,
-                'partecipa': azione,
-                'success': "Autenticazione avvenuta con successo"
-            }
+            # Session
+            request.session['user'] = user_valid.utente
+            request.session['ruolo'] = user_valid.ruolo
 
-            return render(request, 'home.html', context)
+            return home(request, {"success" : "Autenticazione avvenuta con successo"})
         else:
+            request.session.flush()
             return render(request, 'login.html', {'error': 'Credenziali non valide', 'user': user})
-
     return render(request, 'login.html', )
 
 
 def registration(request):
     print("Pagina di registrazione ottenuta")
-
-    # function per prendere i ruoli
+    corsi = get_corsi_laurea()
+    registration_context = {'corsi': corsi}
 
     # Estrazione dei dati
     if request.method == "POST":
@@ -52,14 +45,14 @@ def registration(request):
 
         # Controllo Duplicati
         if Utente.objects.filter(utente=user).exists():
-            return render(request, 'registration.html', {'error': 'Username già registrato.'})
+            return render(request, 'registration.html', {**registration_context, 'error': 'Username già registrato.'})
 
         if Utente.objects.filter(email=email).exists():
-            return render(request, 'registration.html', {'error': 'Email già registrata.'})
+            return render(request, 'registration.html', {**registration_context, 'error': 'Email già registrata.'})
 
         # Controllo ruolo
         if ruolo not in ["studente", "tutor", "admin"]:
-            return render(request, 'registration.html', {'error': 'Ruolo non scelto'})
+            return render(request, 'registration.html', {**registration_context, 'error': 'Ruolo non scelto'})
 
         # Campi Studente
 
@@ -111,82 +104,111 @@ def registration(request):
             print(f"Errore nella creazione oggetto utente-studente: {e}")
 
             if ruolo == "admin" and codice_invito != "ADMIN_2026":
-                return render(request, 'registration.html', {'error': 'Codice invito non valido'})
+                return render(request, 'registration.html',
+                              {**registration_context, 'error': 'Codice invito non valido'})
 
             if new_user is not None:
                 new_user.delete()
-
-            return render(request, 'registration.html', {'error': 'Errore Creazione Profilo'})
+                logout(request)
+            return render(request, 'registration.html', {**registration_context, 'error': 'Errore Creazione Profilo'})
         ruoli_utente = get_ruoli_utente(new_user)
         print(f"Studente {user} registrato con successo!")
-        return render(request, 'home.html',
-                      {"user": new_user, 'ruoli': ruoli_utente, "success": "Registrazione completata con successo"})
+        request.session['user'] = new_user.utente
+        request.session['ruolo'] = new_user.ruolo
+        return home(request,
+                    {"success": "Registrazione completata con successo", "ruoli ": ruoli_utente, "corsi": corsi})
 
-    return render(request, 'registration.html')
+    return render(request, 'registration.html', registration_context)
 
 
-def home(request):
+def home(request, extra_content=None):
     print("Abbiamo ottenuto la pagina home")
-    if request.method == "POST":
-        user = request.POST.get('user')
-        # email = request.POST.get('email')
-        pwd = request.POST.get('pass')
 
-        # Estraction of Datas
-        user_valid = Utente.objects.filter(utente=user).first()
-        # SELECT * FROM UTENTE WHERE utente = $user;
-        if user_valid and verify_password(pwd, user_valid.password):
-            studente = Studente.objects.filter(studente=user_valid).first()
-            tutor = Tutor.objects.filter(tutor=user_valid).first()
-            admin = Admin.objects.filter(admin=user_valid).first()
+    user = request.session.get('user')
+    ruolo = request.session.get('ruolo')
 
-            gruppo = Gruppo.objects.all()
-            esami = Esame.objects.all()
+    if not user:
+        return render(request, "login.html", {"error": "Sessione Scaduta"})
+    # Estraction of Datas
+    user_valid = Utente.objects.filter(utente=user).first()
+    # SELECT * FROM UTENTE WHERE utente = $user;
+    if not user_valid:
+        request.session.flush()
+        return render(request, "login.html", {"error": "Utente non trovato"})
 
-            if studente:
-                partecipa_stud = Partecipazione.objects.filter(studente=studente)
-                esami_stud = esami.filter(anno=studente.anno_corso, corso=studente.corso_laurea)
-                gruppi_stud = gruppo.filter(gruppo_esame__id_esame__in=esami_stud).exclude(
-                    id_gruppo__in=partecipa_stud.values('id_gruppo')).distinct()
+    gruppo = Gruppo.objects.all()
+    esami = Esame.objects.all()
 
-                context = {
-                    "studente": studente,
-                    "part_stud": partecipa_stud,
-                    "grup_stud": gruppi_stud
-                }
-                return render(request, "home.html", context)
-            if tutor:
-                supporto_tut = Supporto.objects.filter(tutor=tutor)
-                gruppi_tut = gruppo.filter(id_gruppo__in=supporto_tut.values("id_gruppo")).distinct()
+    if ruolo == "studente":
+        studente = Studente.objects.filter(studente=user_valid).first()
+        if not studente:
+            return render(request, "login.html", {"error": "Studente non trovato"})
 
-                gruppi_gia_seguiti = Supporto.objects.values_list("id_gruppo", flat=True)
-                gruppi_disp_tut = gruppo.exclude(
-                    id_gruppo__in=gruppi_gia_seguiti
-                )
-                context = {
-                    "tutor": tutor,
-                    "supp_tut": supporto_tut,
-                    "grup_tut": gruppi_tut,
-                    "grup_disp_tut": gruppi_disp_tut
-                }
+        partecipa_stud = Partecipazione.objects.filter(studente=studente)
+        esami_stud = esami.filter(anno=studente.anno_corso, corso=studente.corso_laurea)
+        gruppi_stud = gruppo.filter(gruppo_esame__id_esame__in=esami_stud).exclude(
+            id_gruppo__in=partecipa_stud.values('id_gruppo')).distinct()
+        print(esami_stud)
+        print(gruppo.count())
+        print(gruppi_stud)
+        print("STUDENTE:", studente.anno_corso, studente.corso_laurea)
+        print("ESAMI TOTALI:", list(Esame.objects.values("anno", "corso")))
+        print("ESAMI FILTRATI:", list(esami_stud.values("anno", "corso")))
+        context = {
+            "utente": user_valid,
+            "studente": studente,
+            "part_stud": partecipa_stud,
+            "grup_stud": gruppi_stud,
+            "ruolo": ruolo
+        }
 
-                return render(request, "home.html", context)
-            if admin:
-                gruppi_admin = gruppo.filter(gruppo_admin__admin=admin).distinct()
-                gruppi_gia_gestiti = Gestione.objects.values_list("id_gruppo", flat=True)
+        if extra_content:
+            context.update(extra_content)
 
-                gruppi_disp = Gruppo.objects.exclude(
-                    id_gruppo__in=gruppi_gia_gestiti
-                ).distinct()
+        return render(request, "home.html", context)
+    if ruolo == "tutor":
+        tutor = Tutor.objects.filter(tutor=user_valid).first()
+        supporto_tut = Supporto.objects.filter(tutor=tutor)
+        gruppi_tut = gruppo.filter(id_gruppo__in=supporto_tut.values("id_gruppo")).distinct()
 
-                context = {
-                    "admin": admin,
-                    "grup_admin": gruppi_admin,
-                    "gruppi_disp": gruppi_disp
-                }
-                return render(request, "home.html", context)
-        return render(request, 'login.html', {'error': 'Credenziali non valide', 'user': user})
-    return render(request, 'login.html')
+        gruppi_gia_seguiti = Supporto.objects.values_list("id_gruppo", flat=True)
+        gruppi_disp_tut = gruppo.exclude(
+            id_gruppo__in=gruppi_gia_seguiti
+        )
+        context = {
+            "utente": user_valid,
+            "tutor": tutor,
+            "supp_tut": supporto_tut,
+            "grup_tut": gruppi_tut,
+            "grup_disp_tut": gruppi_disp_tut,
+            "ruolo": ruolo
+        }
+        if extra_content:
+            context.update(extra_content)
+
+        return render(request, "home.html", context)
+    if ruolo == "admin":
+        admin = Admin.objects.filter(admin=user_valid).first()
+        gruppi_admin = gruppo.filter(gruppo_admin__admin=admin).distinct()
+        gruppi_gia_gestiti = Gestione.objects.values_list("id_gruppo", flat=True)
+
+        gruppi_disp = Gruppo.objects.exclude(
+            id_gruppo__in=gruppi_gia_gestiti
+        ).distinct()
+
+        context = {
+            "utente": user_valid,
+            "admin": admin,
+            "grup_admin": gruppi_admin,
+            "gruppi_disp": gruppi_disp,
+            "ruolo": ruolo
+        }
+
+        if extra_content:
+            context.update(extra_content)
+
+        return render(request, "home.html", context)
+    return render(request, 'login.html', {"error": "Ruolo non valido"})
 
 
 def profile(request):
@@ -223,3 +245,8 @@ def get_ruoli_utente(utente):
     if Admin.objects.filter(admin=utente).exists():
         ruoli.append("admin")
     return ruoli
+
+
+def logout(request):
+    request.session.flush()
+    return render(request, "login.html")

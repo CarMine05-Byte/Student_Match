@@ -1,4 +1,80 @@
 {% extends "index.html" %}
 {% block content %}
+    <section class="section">
+        <div class="container">
+            <div class="box">
+                <h1 class="title">Crea gruppo</h1>
 
+                {% if error %}
+                    <div class="notification is-danger">
+                        {{ error }}
+                    </div>
+                {% endif %}
+
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <div class="field">
+                        <label class="label">Nome gruppo</label>
+                        <div class="control">
+                            <label>
+                                <input class="input" type="text" name="nome_gruppo" id="nome_gruppo" required>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">Descrizione</label>
+                        <div class="control">
+                            <label>
+                                <textarea class="textarea" name="descrizione"></textarea>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">Numero massimo partecipanti</label>
+                        <div class="control">
+                            <label>
+                                <input class="input" type="number" name="max_partecipanti" min="1" required>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">Esame associato</label>
+                        <div class="control">
+                            <div class="select is-fullwidth">
+                                <label>
+                                    <select name="id_esame" required>
+                                        <option disabled selected>Seleziona esame</option>
+                                        {% for esame in esami %}
+                                            <option value="{{ esame.id_esame }}">
+                                                {{ esame.nome }} - {{ esame.corso }} - Anno {{ esame.anno }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# campo periodo #}
+                    <div class="field">
+                        <label class="label">Periodo (Giorni)</label>
+                        <div class="control">
+                            <label>
+                                <input class="input" type="number" name="periodo" id="periodo" min="1" max="10000">
+                            </label>
+                        </div>
+                    </div>
+
+
+                    <button class="button is-link" type="submit">
+                        Crea gruppo
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
 {% endblock %}

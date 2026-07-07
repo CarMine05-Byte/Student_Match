@@ -256,6 +256,8 @@ def crea_gruppo(request):
 
     utente = Utente.objects.filter(utente=user).first()
 
+    if ruolo != "admin":
+        return home(request, {"error" : "Solo gli amministratori possono creare e gestire il gruppo!"})
     if not utente:
         request.session.flush()
         return render(request, "login.html", {"error": "Utente non trovato!"})
@@ -263,17 +265,17 @@ def crea_gruppo(request):
     esami = Esame.objects.all()
 
     if request.method == "POST":
-        nome_gruppo = request.post.get("nome_gruppo")
-        descrizione = request.post.get("descrizione")
-        max_partecipanti = request.post.get("partecipanti")
-        id_esame = request.post.get("id_esame")
-        periodo = request.post.get("periodo")
+        nome_gruppo = request.POST.get("nome_gruppo")
+        descrizione = request.POST.get("descrizione")
+        max_partecipanti = request.POST.get("max_partecipanti")
+        id_esame = request.POST.get("id_esame")
+        periodo = request.POST.get("periodo")
 
         if not nome_gruppo or not max_partecipanti or not id_esame:
             return render(request, "crea_gruppo.html", {"error": "Compila tutti i campi obbligatori", "esami": esami})
 
-        exam = Esame.objects.filter(id_esame=id_esame).first()  # chiamo in inglese exam per warning nel nome 'esame'
-        if not exam:
+        esame_selezionato = Esame.objects.filter(id_esame=id_esame).first()  # chiamo in inglese exam per warning nel nome 'esame'
+        if not esame_selezionato:
             return render(request, "crea_gruppo.html", {"error": "Esame non valido!", "esami": esami})
 
         # Esami
@@ -283,8 +285,8 @@ def crea_gruppo(request):
             max_partecipanti=max_partecipanti
         )
         Assegnazione.objects.create(
-            id_gruppo=gruppo.gruppo_esame,
-            id_esame=exam.esame_gruppo,
+            id_gruppo=gruppo,
+            id_esame=esame_selezionato,
             periodo=periodo
         )
         if ruolo == "admin":
@@ -295,7 +297,7 @@ def crea_gruppo(request):
                 admin=admin,
                 id_gruppo=gruppo
             )
-             return home(request, {"sucess": "Gruppo creato con successo!"})
+             return home(request, {"success": "Gruppo creato con successo!"})
     return render(request, "crea_gruppo.html", {"esami": esami})
 
 

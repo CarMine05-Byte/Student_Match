@@ -23,6 +23,7 @@ urlpatterns = [
     path('login/', views.login, name='login'),
     path('register/', views.registration, name='registration'),
     path('home/', views.home, name='home'),
+    path('profile/', views.profile, name='profile'),
     path('gruppi/', views.gruppi, name='gruppi'),
     path('dettaglio_gruppo', views.dettaglio_gruppo, name='dettaglio_gruppo'),
     path('crea_gruppo', views.crea_gruppo, name='crea_gruppo'),

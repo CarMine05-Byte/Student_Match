@@ -35,7 +35,10 @@
                 <div class="column">
                     <div class="box has-text-centered">
                         <h2 class="title is-5">Account</h2>
-                        <p class="subtitle is-6">Vuoi uscire dalla sessione?</p>
+                        <p class="subtitle is-6">Opzioni</p>
+                        <a href="{% url 'profile' %}" class="button is-link is-fullwidth mb-3">
+                            Profilo
+                        </a>
                         <a href="{% url 'logout' %}" class="button is-danger is-fullwidth">
                             Logout
                         </a>

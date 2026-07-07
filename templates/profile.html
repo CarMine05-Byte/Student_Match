@@ -1,4 +1,160 @@
 {% extends "index.html" %}
 {% block content %}
+    <section class="section is-medium profile-page">
+        <div class="container">
+            <div class="columns is-centered">
+                <div class="column is-8-tablet is-6-desktop is-5-widescreen">
+                    <div class="card profile-card">
+                        <div class="card-content">
+                            <div class="has-text-centered mb-5">
+                                <span class="icon is-large has-text-link mb-3">
+                                    <i class="fa-solid fa-circle-user fa-4x" aria-hidden="true"></i>
+                                </span>
 
+                                <h1 class="title is-3 profile-title mb-2">
+                                    {% if utente.nome or utente.cognome %}
+                                        {{ utente.nome|default:"" }} {{ utente.cognome|default:"" }}
+                                    {% else %}
+                                        {{ utente.utente }}
+                                    {% endif %}
+                                </h1>
+                                <span class="tag is-link is-light is-medium">
+                                    {{ ruolo|capfirst }}
+                                </span>
+                            </div>
+
+                            <div class="content profile-content">
+                                <div class="columns is-mobile is-vcentered mb-0">
+                                    <div class="column is-narrow">
+                                        <span class="icon has-text-grey">
+                                            <i class="fa-solid fa-user" aria-hidden="true"></i>
+                                        </span>
+                                    </div>
+                                    <div class="column">
+                                        <p class="is-size-7 has-text-grey mb-1">Username</p>
+                                        <p class="has-text-weight-semibold">{{ utente.utente }}</p>
+                                    </div>
+                                </div>
+
+                                <hr class="my-3">
+
+                                <div class="columns is-mobile is-vcentered mb-0">
+                                    <div class="column is-narrow">
+                                        <span class="icon has-text-grey">
+                                            <i class="fa-solid fa-envelope" aria-hidden="true"></i>
+                                        </span>
+                                    </div>
+                                    <div class="column">
+                                        <p class="is-size-7 has-text-grey mb-1">Email</p>
+                                        <p class="has-text-weight-semibold">{{ utente.email }}</p>
+                                    </div>
+                                </div>
+
+                                <hr class="my-3">
+
+                                {% if studente %}
+                                    <div class="columns is-mobile is-vcentered mb-0">
+                                        <div class="column is-narrow">
+                                            <span class="icon has-text-grey">
+                                                <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
+                                            </span>
+                                        </div>
+                                        <div class="column">
+                                            <p class="is-size-7 has-text-grey mb-1">Corso di laurea</p>
+                                            <p class="has-text-weight-semibold">{{ studente.corso_laurea }}</p>
+                                        </div>
+                                    </div>
+                                    <hr class="my-3">
+                                    <div class="columns is-mobile is-vcentered mb-0">
+                                        <div class="column is-narrow">
+                                            <span class="icon has-text-grey">
+                                                <i class="fa-solid fa-calendar" aria-hidden="true"></i>
+                                            </span>
+                                        </div>
+                                        <div class="column">
+                                            <p class="is-size-7 has-text-grey mb-1">Anno di corso</p>
+                                            <p class="has-text-weight-semibold">{{ studente.anno_corso }}</p>
+                                        </div>
+                                    </div>
+                                {% elif tutor %}
+                                    <div class="columns is-mobile is-vcentered mb-0">
+                                        <div class="column is-narrow">
+                                            <span class="icon has-text-grey">
+                                                <i class="fa-solid fa-building-columns" aria-hidden="true"></i>
+                                            </span>
+                                        </div>
+                                        <div class="column">
+                                            <p class="is-size-7 has-text-grey mb-1">Dipartimento</p>
+                                            <p class="has-text-weight-semibold">{{ tutor.dipartimento }}</p>
+                                        </div>
+                                    </div>
+                                    <hr class="my-3">
+                                    <div class="columns is-mobile is-vcentered mb-0">
+                                        <div class="column is-narrow">
+                                            <span class="icon has-text-grey">
+                                                <i class="fa-solid fa-book-open" aria-hidden="true"></i>
+                                            </span>
+                                        </div>
+                                        <div class="column">
+                                            <p class="is-size-7 has-text-grey mb-1">Area di competenza</p>
+                                            <p class="has-text-weight-semibold">{{ tutor.area_competenza }}</p>
+                                        </div>
+                                    </div>
+                                    {% if tutor.laurea %}
+                                        <hr class="my-3">
+                                        <div class="columns is-mobile is-vcentered mb-0">
+                                            <div class="column is-narrow">
+                                                <span class="icon has-text-grey">
+                                                    <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
+                                                </span>
+                                            </div>
+                                            <div class="column">
+                                                <p class="is-size-7 has-text-grey mb-1">Laurea</p>
+                                                <p class="has-text-weight-semibold">{{ tutor.laurea }}</p>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                {% elif admin %}
+                                    <div class="columns is-mobile is-vcentered mb-0">
+                                        <div class="column is-narrow">
+                                            <span class="icon has-text-grey">
+                                                <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+                                            </span>
+                                        </div>
+                                        <div class="column">
+                                            <p class="is-size-7 has-text-grey mb-1">Livello amministratore</p>
+                                            <p class="has-text-weight-semibold">{{ admin.livello }}</p>
+                                        </div>
+                                    </div>
+                                    <hr class="my-3">
+                                    <div class="columns is-mobile is-vcentered mb-0">
+                                        <div class="column is-narrow">
+                                            <span class="icon has-text-grey">
+                                                <i class="fa-solid fa-calendar-check" aria-hidden="true"></i>
+                                            </span>
+                                        </div>
+                                        <div class="column">
+                                            <p class="is-size-7 has-text-grey mb-1">Data di nomina</p>
+                                            <p class="has-text-weight-semibold">{{ admin.data_nomina|date:"d/m/Y" }}</p>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <footer class="card-footer">
+                            <a href="{% url 'home' %}" class="card-footer-item has-text-link">
+                                <span class="icon mr-2"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i></span>
+                                Torna alla home
+                            </a>
+                            <a href="{% url 'logout' %}" class="card-footer-item has-text-danger">
+                                <span class="icon mr-2"><i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i></span>
+                                Logout
+                            </a>
+                        </footer>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 {% endblock %}

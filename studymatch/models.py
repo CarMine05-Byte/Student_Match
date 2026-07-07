@@ -1,7 +1,7 @@
 from django.db import models
 from django.db.models import ForeignKey
 from django.utils import timezone
-
+from django.core.exceptions import ValidationError
 
 class Utente(models.Model):
     utente = models.CharField(max_length=50, primary_key=True)
@@ -45,7 +45,7 @@ class Gruppo(models.Model):
     nome_gruppo = models.CharField(max_length=50)
     chat = models.TextField(null=True, blank=True)
     descrizione = models.TextField(null=True, blank=True)
-    max_partecipanti = models.SmallIntegerField(default=0)
+    max_partecipanti = models.SmallIntegerField(default=5)
 
 
 class Materiale(models.Model):

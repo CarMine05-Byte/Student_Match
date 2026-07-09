@@ -10,15 +10,12 @@ def index(request):
 
 def login(request):
     if request.method == "POST":
-        user = request.POST.get("user")
-        # email = request.POST.get("email")
+        ident = request.POST.get("id")
         pwd = request.POST.get("pass")
-        # Use Hash lib for hash password
-        print(f"Username : {user}")
-        user_valid = Utente.objects.filter(utente=user).first()
+        user_valid = Utente.objects.filter(models.Q(utente=ident) | models.Q(email=ident)).first()
         # select * from Student where utente ="$user"
         if user_valid and verify_password(pwd, user_valid.password):  # verifichiamo la password
-            print(f"Utente Verificato : {user}")
+            print(f"Utente Verificato : {user_valid.utente}")
 
             # Session
             request.session['user'] = user_valid.utente
@@ -27,8 +24,8 @@ def login(request):
             return home(request, {"success": "Autenticazione avvenuta con successo"})
         else:
             request.session.flush()
-            return render(request, 'login.html', {'error': 'Credenziali non valide', 'user': user})
-    return render(request, 'login.html', )
+            return render(request, 'login.html', {'error': 'Credenziali non valide', 'user': ident})
+    return render(request, 'login.html')
 
 
 def registration(request):
@@ -144,8 +141,9 @@ def home(request, extra_content=None):
         if not studente:
             return render(request, "login.html", {"error": "Studente non trovato"})
 
-        partecipa_stud = Partecipazione.objects.filter(studente=studente)
         esami_stud = esami.filter(anno_corso=studente.anno_corso, corso=studente.corso_laurea)
+        partecipa_stud = Partecipazione.objects.filter(studente=studente).distinct()
+
         gruppi_stud = gruppo.filter(gruppo_esame__id_esame__in=esami_stud).exclude(
             id_gruppo__in=partecipa_stud.values('id_gruppo')).distinct()
         context = {
@@ -314,61 +312,230 @@ def crea_gruppo(request):
 
 
 def dettaglio_gruppo(request, id_gruppo):
-    user = request.session.get('user')
-    ruolo = request.session.get('ruolo')
-
+    user = request.session.get("user")
+    ruolo = request.session.get("ruolo")
     if not user:
-        return render(request, "login.html", {"error": "Sessione Scaduta"})
+        return render(request, "login.html", {"error": "Sessione scaduta"})
 
     utente = Utente.objects.filter(utente=user).first()
     if not utente:
         request.session.flush()
-        return render(request, "login.html", {"error": "Utente non trovato"})
+        return render(request, "login.html", {"error": "Utente non trovato"
+                                              })
 
     gruppo = Gruppo.objects.filter(id_gruppo=id_gruppo).first()
     if not gruppo:
         return home(request, {"error": "Gruppo non trovato"})
 
-    partecipazioni = Partecipazione.objects.filter(id_gruppo=gruppo)
-    supporti = Supporto.objects.filter(id_gruppo=gruppo)
     assegnazioni = Assegnazione.objects.filter(id_gruppo=gruppo)
-    posti_occupati = partecipazioni.count()
-    posti_disponibili = max(gruppo.max_partecipanti - posti_occupati, 0)
 
     context = {
         "utente": utente,
         "ruolo": ruolo,
         "gruppo": gruppo,
-        "assegnazioni": assegnazioni,
-        "partecipazioni": partecipazioni,
-        "supporti": supporti,
-        "posti_occupati": posti_occupati,
-        "posti_disponibili": posti_disponibili,
+        "assegnazioni": assegnazioni
     }
 
     if ruolo == "studente":
         studente = Studente.objects.filter(studente=utente).first()
-        context["studente"] = studente
-        context["iscritto"] = Partecipazione.objects.filter(
-            studente=studente,
-            id_gruppo=gruppo
+
+        partecipazione_utente = Partecipazione.objects.filter(studente=studente,
+                                                              id_gruppo=gruppo).first() if studente else None
+        gruppo_compatibile = Assegnazione.objects.filter(
+            id_gruppo=gruppo,
+            id_esame__corso=studente.corso_laurea,
+            id_esame__anno_corso=studente.anno_corso
         ).exists() if studente else False
+
+        context["studente"] = studente
+        context["partecipazione_utente"] = partecipazione_utente
+        context["gruppo_compatibile"] = gruppo_compatibile
+        if request.method == "POST":
+            azione = request.POST.get("azione")
+
+            if azione == "richiedi_partecipazione":
+
+                if not gruppo_compatibile:
+                    context["error"] = ("Non puoi partecipare a un gruppo associato"
+                                        "a un corso o anno diverso dal tuo.")
+                elif partecipazione_utente:
+                    context["error"] = (
+                        "Hai già inviato una richiesta per questo gruppo."
+                    )
+                else:
+                    partecipazione_utente = Partecipazione.objects.create(
+                        studente=studente,
+                        id_gruppo=gruppo,
+                        stato=False
+                    )
+
+                    context["partecipazione_utente"] = partecipazione_utente
+                    context["success"] = (
+                        "Richiesta di partecipazione inviata."
+                    )
+
     elif ruolo == "tutor":
-        tutor = Tutor.objects.filter(tutor=utente).first()
-        context["tutor"] = tutor
-        context["segue_gruppo"] = Supporto.objects.filter(
+        tutor = Tutor.objects.filter(
+            tutor=utente
+        ).first()
+
+        supporto_utente = Supporto.objects.filter(
             tutor=tutor,
             id_gruppo=gruppo
-        ).exists() if tutor else False
-    elif ruolo == "admin":
-        admin = Admin.objects.filter(admin=utente).first()
-        context["admin"] = admin
-        context["gestisce_gruppo"] = Gestione.objects.filter(
-            admin=admin,
-            id_gruppo=gruppo
-        ).exists() if admin else False
+        ).first() if tutor else None
 
-    return render(request, 'dettaglio_gruppo.html', context)
+        context["tutor"] = tutor
+        context["supporto_utente"] = supporto_utente
+
+        if request.method == "POST":
+            azione = request.POST.get("azione")
+
+            if azione == "richiedi_supporto":
+
+                if supporto_utente:
+                    context["error"] = (
+                        "Hai già inviato una richiesta di supporto."
+                    )
+
+                else:
+                    supporto_utente = Supporto.objects.create(
+                        tutor=tutor,
+                        id_gruppo=gruppo,
+                        stato=False
+                    )
+
+                    context["supporto_utente"] = supporto_utente
+                    context["success"] = (
+                        "Richiesta di supporto inviata."
+                    )
+    # Ruolo Admin
+    elif ruolo == "admin":
+        admin = Admin.objects.filter(
+            admin=utente
+        ).first()
+
+        gestisce_gruppo = Gestione.objects.filter(
+            admin=admin, id_gruppo=gruppo).exists() if admin else False
+
+        context["admin"] = admin
+        context["gestisce_gruppo"] = gestisce_gruppo
+
+        # Parte di codice per accettare la richiesta da parte di utenti
+        if request.method == "POST":
+            azione = request.POST.get("azione")
+            richiesta_id = request.POST.get("richiesta_id")
+
+            if not gestisce_gruppo:
+                context["error"] = (
+                    "Non sei autorizzato a gestire le richieste di questo gruppo")
+            # Accetta richieste partecipazione
+            elif azione == "accetta_partecipazione":
+                richiesta = Partecipazione.objects.filter(
+                    id=richiesta_id,
+                    id_gruppo=gruppo,
+                    stato=False
+                ).first()
+                conteggio = Partecipazione.objects.filter(
+                    id_gruppo=gruppo,
+                    stato=True
+                ).count()
+                if not richiesta:
+                    context["error"] = "Richiesta di partecipazione non trovata."
+
+                elif conteggio >= gruppo.max_partecipanti:
+                    context["error"] = ("Non puoi accettare la richiesta:"
+                                        "il gruppo ha raggiunto il limite massimo")
+
+                else:
+                    richiesta.stato = True
+                    richiesta.save()
+
+                    context["success"] = (
+                        "Richiesta di partecipazione accettata."
+                    )
+            # Rifiuta richieste partecipazione
+            elif azione == "rifiuta_partecipazione":
+                richiesta = Partecipazione.objects.filter(
+                    id=richiesta_id,
+                    id_gruppo=gruppo,
+                    stato=False
+                ).first()
+                if richiesta:
+                    richiesta.delete()
+                    context["success"] = (
+                        "Richiesta di partecipazione rifiutata."
+                    )
+                else:
+                    context["error"] = (
+                        "Richiesta di partecipazione non trovata."
+                    )
+                # Accetta richieste supporto
+            elif azione == "accetta_supporto":
+                richiesta = Supporto.objects.filter(
+                    id=richiesta_id,
+                    id_gruppo=gruppo,
+                    stato=False
+                ).first()
+
+                tutor_presente = Supporto.objects.filter(
+                    id_gruppo=gruppo,
+                    stato=True
+                ).exists()
+
+                if not richiesta:
+                    context["error"] = "Richiesta del tutor non trovata."
+
+                elif tutor_presente:
+                    context["error"] = (
+                        "Il gruppo possiede già un tutor."
+                    )
+                else:
+                    richiesta.stato = True
+                    richiesta.save()
+
+                    context["success"] = (
+                        "Richiesta del tutor accettata."
+                    )
+            # Rifiuta richieste supporto
+            elif azione == "rifiuta_supporto":
+                richiesta = Supporto.objects.filter(
+                    id_gruppo=gruppo,
+                    stato=False
+                ).exists()
+
+                if richiesta:
+                    richiesta.delete()
+                    context["success"] = (
+                        "Richiesta del tutor rifiutata."
+                    )
+                else:
+                    context["error"] = "Richiesta del tutor non trovata"
+        context["richieste_studenti"] = Partecipazione.objects.filter(
+            id_gruppo=gruppo,
+            stato=False
+        )
+
+        context["richieste_tutor"] = Supporto.objects.filter(
+            id_gruppo=gruppo,
+            stato=False
+        )
+
+        partecipazioni = Partecipazione.objects.filter(id_gruppo=gruppo, stato=True)
+        supporti = Supporto.objects.filter(id_gruppo=gruppo, stato=True)
+
+        posti_occupati = Partecipazione.objects.filter(
+            id_gruppo=gruppo,
+            stato=True
+        ).count()
+        residuo = gruppo.max_partecipanti - posti_occupati
+        posti_disponibili = max(residuo, 0)
+
+        context["partecipazioni"] = partecipazioni
+        context["supporti"] = supporti
+        context["posti_occupati"] = posti_occupati
+        context["posti_disponibili"] = posti_disponibili
+
+    return render(request, "dettaglio_gruppo.html", context)
 
 
 def esame(request):

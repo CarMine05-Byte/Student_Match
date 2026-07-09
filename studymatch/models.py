@@ -70,7 +70,7 @@ class Supporto(models.Model):
     tutor = models.ForeignKey(Tutor, on_delete=models.CASCADE, related_name="tutor_gruppo")
     id_gruppo = models.ForeignKey(Gruppo, on_delete=models.CASCADE, related_name="gruppo_tutor")
     punteggio = models.IntegerField(null=True, blank=True)
-
+    stato = models.BooleanField(default=False)
     class Meta:
         unique_together = ('tutor', 'id_gruppo')
 

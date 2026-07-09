@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
+    <meta name="color-scheme" content="light">
     <title>StudentMatch</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/bulma.min.css' %}">
@@ -18,10 +19,10 @@
         })
     });
 </script>
-<body class="has-background-dark has-text-white">
+<body class="has-background-black-ter has-text-white">
 
 {% block content %}
-    <section class="hero is-fullheight-with-navbar has-background-dark">
+    <section class="hero is-fullheight-with-navbar has-background-black-ter">
         <div class="hero-body">
             <div class="container">
 
@@ -37,7 +38,7 @@
                             Trova il gruppo studio giusto per te
                         </h1>
 
-                        <p class="subtitle is-4 has-text-light">
+                        <p class="subtitle is-4 has-text-white-ter">
                             Organizza lo studio, consulta gli esami disponibili, partecipa ai gruppi
                             e accedi ai materiali condivisi con altri studenti.
                         </p>
@@ -47,7 +48,7 @@
                                 Accedi
                             </a>
 
-                            <a href="{% url 'registration' %}" class="button is-light is-medium">
+                            <a href="{% url 'registration' %}" class="button is-white is-medium">
                                 Registrati
                             </a>
                         </div>
@@ -55,13 +56,13 @@
 
                     <!-- BOX INFORMATIVO -->
                     <div class="column is-5 is-offset-1">
-                        <div class="box has-background-light">
+                        <div class="box has-background-white-ter">
 
-                            <h2 class="title is-4 has-text-dark">
+                            <h2 class="title is-4 has-text-black-ter">
                                 Cosa puoi fare?
                             </h2>
 
-                            <div class="content has-text-dark">
+                            <div class="content has-text-black-ter">
                                 <p>
                                     StudyMatch permette di gestire gruppi studio,
                                     esami, tutor, materiali didattici e notifiche in un unico ambiente.
@@ -71,7 +72,7 @@
                             <div class="columns is-multiline mt-4">
 
                                 <div class="column is-6">
-                                    <div class="notification is-info is-light">
+                                    <div class="notification is-info">
                                         <strong>Esami</strong>
                                         <br>
                                         Consulta gli esami disponibili.
@@ -79,7 +80,7 @@
                                 </div>
 
                                 <div class="column is-6">
-                                    <div class="notification is-success is-light">
+                                    <div class="notification is-success">
                                         <strong>Gruppi</strong>
                                         <br>
                                         Partecipa ai gruppi studio.
@@ -87,7 +88,7 @@
                                 </div>
 
                                 <div class="column is-6">
-                                    <div class="notification is-warning is-light">
+                                    <div class="notification is-warning">
                                         <strong>Tutor</strong>
                                         <br>
                                         Ricevi supporto didattico.
@@ -95,7 +96,7 @@
                                 </div>
 
                                 <div class="column is-6">
-                                    <div class="notification is-danger is-light">
+                                    <div class="notification is-danger">
                                         <strong>Materiali</strong>
                                         <br>
                                         Accedi alle risorse condivise.

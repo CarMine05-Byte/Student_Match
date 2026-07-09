@@ -60,7 +60,7 @@
                                 {% for assegnazione in gruppo.gruppo_esame.all %}
                                     <span class="tag is-info">{{ assegnazione.id_esame.nome_esame }}</span>
                                 {% endfor %}
-                                <span class="tag is-light">{{ gruppo.max_partecipanti }}Posti Max</span>
+                                <span class="tag">{{ gruppo.max_partecipanti }}Posti Max</span>
                             </div>
                             <a href="{% url 'dettaglio_gruppo' %}"
                                class="button is-small is-link">
@@ -91,7 +91,7 @@
                             </div>
                         </div>
                     {% empty %}
-                        <div class="notification is-light">
+                        <div class="notification">
                             Non sei ancora iscritto a nessun gruppo.
                         </div>
                     {% endfor %}
@@ -109,7 +109,7 @@
                                 {% for assegnazione in gruppo.gruppo_esame.all %}
                                     <span class="tag is-info">{{ assegnazione.id_esame.nome_esame }}</span>
                                 {% endfor %}
-                                <span class="tag is-light">{{ gruppo.max_partecipanti }}Posti Max</span>
+                                <span class="tag">{{ gruppo.max_partecipanti }} Posti Max</span>
                             </div>
                             <a href="{% url 'dettaglio_gruppo' %}"
                                class="button is-small is-link">
@@ -138,12 +138,12 @@
                                     <span class="tag is-warning">In Attesa</span>
                                 {% endif %}
                                 {% if supporto.punteggio %}
-                                    <span class="tag is-light">punteggio: {{ supporto.punteggio }}</span>
+                                    <span class="tag">punteggio: {{ supporto.punteggio }}</span>
                                 {% endif %}
                             </div>
                         </div>
                     {% empty %}
-                        <div class="notification is-light">
+                        <div class="notification">
                             Non segui ancora nessun gruppo.
                         </div>
                     {% endfor %}
@@ -164,9 +164,9 @@
                                 {% for assegnazione in gruppo.gruppo_esame.all %}
                                     <span class="tag is-info">{{ assegnazione.id_esame.nome_esame }}</span>
                                 {% endfor %}
-                                <span class="tag is-light">{{ gruppo.max_partecipanti }}Posti Max</span>
+                                <span class="tag">{{ gruppo.max_partecipanti }}Posti Max</span>
                             </div>
-                            <a href="{% url 'dettaglio_gruppo' %}"
+                            <a href="{% url 'dettaglio_gruppo' 'gruppo.id_gruppo'%}"
                                class="button is-small is-link">
                                 Dettagli
                             </a>
@@ -189,7 +189,7 @@
                             <p> {{ gruppo.descrizione }}</p>
                         </div>
                     {% empty %}
-                        <div class="notification is-light">
+                        <div class="notification">
                             Non gestisci ancora nessun gruppo.
                         </div>
                     {% endfor %}

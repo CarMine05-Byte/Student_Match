@@ -1,7 +1,6 @@
 from django.db import models
-from django.db.models import ForeignKey
 from django.utils import timezone
-from django.core.exceptions import ValidationError
+
 
 class Utente(models.Model):
     utente = models.CharField(max_length=50, primary_key=True)
@@ -29,13 +28,14 @@ class Admin(models.Model):
     admin = models.ForeignKey(Utente, on_delete=models.CASCADE, related_name="admin_profile")
     livello = models.SmallIntegerField(default=1)
     data_nomina = models.DateField(default=timezone.now)
+    notifica = models.ForeignKey(Utente, on_delete=models.CASCADE, null=True)
 
 
 class Esame(models.Model):
     id_esame = models.SmallAutoField(primary_key=True)
     nome_esame = models.CharField(max_length=50)
     corso = models.CharField(max_length=100)
-    anno = models.SmallIntegerField(default=1)
+    anno_corso = models.SmallIntegerField(default=1)
     semestre = models.SmallIntegerField(default=0)
     cfu = models.SmallIntegerField(default=0)
 
@@ -43,29 +43,17 @@ class Esame(models.Model):
 class Gruppo(models.Model):
     id_gruppo = models.SmallAutoField(primary_key=True)
     nome_gruppo = models.CharField(max_length=50)
-    chat = models.TextField(null=True, blank=True)
+    link_chat = models.TextField(null=True, blank=True)
     descrizione = models.TextField(null=True, blank=True)
     max_partecipanti = models.SmallIntegerField(default=5)
 
 
 class Materiale(models.Model):
-    id_materiale = models.AutoField(primary_key=True)
-    nome_file = models.CharField(max_length=150)
+    nome_file = models.CharField(primary_key=True, max_length=150)
     tipo = models.CharField(max_length=5)
-
     file = models.FileField(upload_to='materiali/', null=True, default=None)
     url = models.URLField(default=None, null=True)
     data_caricamento = models.DateField(auto_now_add=True)
-    id_gruppo = models.ForeignKey(Gruppo, on_delete=models.CASCADE, related_name="gruppo_associato")
-
-
-class Notifica(models.Model):
-    id_notifica = models.SmallAutoField(primary_key=True)
-    messaggio = models.TextField(max_length=50)
-    visuale = models.BooleanField(default=False)
-    data_invio = models.TimeField(default=timezone.now)
-    utente = ForeignKey(Utente, on_delete=models.CASCADE, related_name="notifica_utente")
-    admin = ForeignKey(Admin, on_delete=models.CASCADE, related_name="notifica_admin")
 
 
 class Partecipazione(models.Model):
@@ -82,7 +70,6 @@ class Supporto(models.Model):
     tutor = models.ForeignKey(Tutor, on_delete=models.CASCADE, related_name="tutor_gruppo")
     id_gruppo = models.ForeignKey(Gruppo, on_delete=models.CASCADE, related_name="gruppo_tutor")
     punteggio = models.IntegerField(null=True, blank=True)
-    stato = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ('tutor', 'id_gruppo')
@@ -112,3 +99,11 @@ class Assegnazione(models.Model):
 
     class Meta:
         unique_together = ('id_esame', 'id_gruppo')
+
+
+class Condivisione(models.Model):
+    file = models.ForeignKey(Materiale, on_delete=models.CASCADE)
+    id_gruppo = models.ForeignKey(Gruppo, on_delete=models.CASCADE, related_name="gruppo_associato")
+
+    class Meta:
+        unique_together = ('file', 'id_gruppo')

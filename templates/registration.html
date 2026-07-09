@@ -115,7 +115,6 @@
                                         <div class="select is-fullwidth">
                                             <select name="corso_laurea_stu" id="corso_laurea_stu" required>
                                                 <option disabled selected>Seleziona corso</option>
-
                                                 {% for corso in corsi %}
                                                     <option value="{{ corso }}">{{ corso }}</option>
                                                 {% endfor %}
@@ -144,7 +143,16 @@
                                 <div class="field">
                                     <label class="label" for="corso_laurea_tut">Corso di Laurea</label>
                                     <div class="control">
-                                        <input class="input" type="text" id="corso_laurea_tut" name="corso_laurea_tut">
+                                        <div class="select is-fullwidth">
+                                            <select name="corso_laurea_tut" id="corso_laurea_tut" required>
+                                                <option disabled selected>
+                                                    Seleziona il corso
+                                                </option>
+                                                {% for corso in corsi %}
+                                                    <option value="{{ corso }}">{{ corso }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

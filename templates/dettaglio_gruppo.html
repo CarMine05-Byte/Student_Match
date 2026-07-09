@@ -1,5 +1,480 @@
 {% extends "index.html" %}
+
+{% block title %}{{ gruppo.nome_gruppo }} | StudentMatch{% endblock %}
+
 {% block content %}
 
+    <section class="section">
+        <div class="container">
+
+            {% if success %}
+                <div class="notification is-success">
+                    <button class="delete"></button>
+                    {{ success }}
+                </div>
+            {% endif %}
+
+            {% if error %}
+                <div class="notification is-danger">
+                    <button class="delete"></button>
+                    {{ error }}
+                </div>
+            {% endif %}
+
+
+            <!-- Intestazione -->
+            <div class="level mb-5">
+
+                <div class="level-left">
+                    <div class="level-item">
+                        <div>
+                            <h1 class="title">
+                                {{ gruppo.nome_gruppo }}
+                            </h1>
+
+                            <p class="subtitle">
+                                Dettagli del gruppo di studio
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="level-right">
+                    <div class="level-item">
+                        <a href="{% url 'home' %}" class="button">
+                        <span class="icon">
+                            <i class="fa-solid fa-arrow-left"></i>
+                        </span>
+                            <span>Torna alla home</span>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+
+
+            <div class="columns">
+
+                <!-- Informazioni principali -->
+                <div class="column is-two-thirds">
+
+                    <div class="card mb-5">
+
+                        <header class="card-header">
+                            <p class="card-header-title">
+                            <span class="icon mr-2">
+                                <i class="fa-solid fa-users"></i>
+                            </span>
+                                Informazioni sul gruppo
+                            </p>
+                        </header>
+
+                        <div class="card-content">
+
+                            <div class="content">
+
+                                <h2 class="title is-5">
+                                    Descrizione
+                                </h2>
+
+                                {% if gruppo.descrizione %}
+                                    <p>{{ gruppo.descrizione }}</p>
+                                {% else %}
+                                    <p>
+                                        Non è stata inserita alcuna descrizione.
+                                    </p>
+                                {% endif %}
+
+                                <hr>
+
+                                <h2 class="title is-5">
+                                    Esami associati
+                                </h2>
+
+                                {% for assegnazione in gruppo.gruppo_esame.all %}
+
+                                    <article class="message is-info mb-4">
+
+                                        <div class="message-header">
+                                            <p>
+                                                {{ assegnazione.id_esame.nome_esame }}
+                                            </p>
+                                        </div>
+
+                                        <div class="message-body">
+
+                                            <div class="columns is-multiline">
+
+                                                <div class="column is-half">
+                                                    <p>
+                                                        <strong>Corso:</strong><br>
+                                                        {{ assegnazione.id_esame.corso }}
+                                                    </p>
+                                                </div>
+
+                                                <div class="column is-half">
+                                                    <p>
+                                                        <strong>Anno di corso:</strong><br>
+                                                        {{ assegnazione.id_esame.anno_corso }}
+                                                    </p>
+                                                </div>
+
+                                                <div class="column is-half">
+                                                    <p>
+                                                        <strong>Semestre:</strong><br>
+                                                        {{ assegnazione.id_esame.semestre }}
+                                                    </p>
+                                                </div>
+
+                                                <div class="column is-half">
+                                                    <p>
+                                                        <strong>CFU:</strong><br>
+                                                        {{ assegnazione.id_esame.cfu }}
+                                                    </p>
+                                                </div>
+
+                                                <div class="column is-half">
+                                                    <p>
+                                                        <strong>Periodo del gruppo:</strong><br>
+                                                        {{ assegnazione.periodo }} giorni
+                                                    </p>
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    </article>
+
+                                {% empty %}
+
+                                    <div class="notification is-warning">
+                                        Nessun esame associato al gruppo.
+                                    </div>
+
+                                {% endfor %}
+
+                            </div>
+
+                        </div>
+                    </div>
+
+
+                    <!-- Area riservata -->
+                    {% if accesso_consentito %}
+
+                        <div class="card">
+
+                            <header class="card-header">
+                                <p class="card-header-title">
+                                <span class="icon mr-2">
+                                    <i class="fa-solid fa-folder-open"></i>
+                                </span>
+                                    Materiali del gruppo
+                                </p>
+                            </header>
+
+                            <div class="card-content">
+
+                                {% for condivisione in gruppo.gruppo_associato.all %}
+
+                                    <article class="media mb-5">
+
+                                        <div class="media-left">
+                                        <span class="icon is-large">
+                                            <i class="fa-solid fa-file fa-2x"></i>
+                                        </span>
+                                        </div>
+
+                                        <div class="media-content">
+
+                                            <p class="title is-6 mb-2">
+                                                {{ condivisione.file.nome_file }}
+                                            </p>
+
+                                            <div class="tags">
+                                            <span class="tag is-info">
+                                                {{ condivisione.file.tipo }}
+                                            </span>
+
+                                                <span class="tag">
+                                                Caricato il
+                                                {{ condivisione.file.data_caricamento|date:"d/m/Y" }}
+                                            </span>
+                                            </div>
+
+                                            <div class="buttons mt-3">
+
+                                                {% if condivisione.file.file %}
+                                                    <a href="{{ condivisione.file.file.url }}"
+                                                       class="button is-link is-small"
+                                                       target="_blank">
+
+                                                    <span class="icon">
+                                                        <i class="fa-solid fa-download"></i>
+                                                    </span>
+
+                                                        <span>Apri file</span>
+                                                    </a>
+                                                {% endif %}
+
+                                                {% if condivisione.file.url %}
+                                                    <a href="{{ condivisione.file.url }}"
+                                                       class="button is-info is-small"
+                                                       target="_blank">
+
+                                                    <span class="icon">
+                                                        <i class="fa-solid fa-link"></i>
+                                                    </span>
+
+                                                        <span>Apri collegamento</span>
+                                                    </a>
+                                                {% endif %}
+
+                                            </div>
+
+                                        </div>
+
+                                    </article>
+
+                                {% empty %}
+
+                                    <div class="notification">
+                                        Non sono ancora stati caricati materiali.
+                                    </div>
+
+                                {% endfor %}
+
+                            </div>
+
+                        </div>
+
+                    {% else %}
+
+                        <article class="message is-warning">
+
+                            <div class="message-header">
+                                <p>Area riservata</p>
+                            </div>
+
+                            <div class="message-body">
+                                I materiali e la chat saranno disponibili dopo
+                                l’accesso al gruppo.
+                            </div>
+
+                        </article>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- Riepilogo laterale -->
+                <div class="column">
+
+                    <div class="card mb-5">
+
+                        <header class="card-header">
+                            <p class="card-header-title">
+                                Riepilogo
+                            </p>
+                        </header>
+
+                        <div class="card-content">
+
+                            <div class="content">
+
+                                <p>
+                                <span class="icon">
+                                    <i class="fa-solid fa-user-group"></i>
+                                </span>
+
+                                    <strong>Partecipanti:</strong><br>
+
+                                    {{ numero_partecipanti }}
+                                    su
+                                    {{ gruppo.max_partecipanti }}
+                                </p>
+
+                                <progress
+                                        class="progress is-link"
+                                        value="{{ numero_partecipanti }}"
+                                        max="{{ gruppo.max_partecipanti }}">
+                                    {{ numero_partecipanti }}
+                                </progress>
+
+                                <hr>
+
+                                <p>
+                                <span class="icon">
+                                    <i class="fa-solid fa-chalkboard-user"></i>
+                                </span>
+
+                                    <strong>Tutor</strong>
+                                </p>
+
+                                {% for supporto in gruppo.gruppo_tutor.all %}
+
+                                    <div class="tags">
+                                    <span class="tag is-primary">
+                                        {% if supporto.tutor.tutor.nome or supporto.tutor.tutor.cognome %}
+                                            {{ supporto.tutor.tutor.nome }}
+                                            {{ supporto.tutor.tutor.cognome }}
+                                        {% else %}
+                                            {{ supporto.tutor.tutor.utente }}
+                                        {% endif %}
+                                    </span>
+                                    </div>
+
+                                {% empty %}
+
+                                    <p>
+                                        Nessun tutor associato.
+                                    </p>
+
+                                {% endfor %}
+
+                                <hr>
+
+                                <p>
+                                <span class="icon">
+                                    <i class="fa-solid fa-shield-halved"></i>
+                                </span>
+
+                                    <strong>Amministratore responsabile</strong>
+                                </p>
+
+                                {% for gestione in gruppo.gruppo_admin.all %}
+
+                                    <div class="tags">
+                                    <span class="tag is-link">
+                                        {% if gestione.admin.admin.nome or gestione.admin.admin.cognome %}
+                                            {{ gestione.admin.admin.nome }}
+                                            {{ gestione.admin.admin.cognome }}
+                                        {% else %}
+                                            {{ gestione.admin.admin.utente }}
+                                        {% endif %}
+                                    </span>
+                                    </div>
+
+                                {% empty %}
+
+                                    <p>
+                                        Nessun amministratore associato.
+                                    </p>
+
+                                {% endfor %}
+
+                            </div>
+
+                        </div>
+                    </div>
+
+
+                    <!-- Stato di accesso -->
+                    <div class="box">
+
+                        <h2 class="title is-5">
+                            Accesso al gruppo
+                        </h2>
+
+                        {% if accesso_consentito %}
+
+                            <div class="notification is-success">
+                                Hai accesso al gruppo.
+                            </div>
+
+                            {% if gruppo.link_chat %}
+                                <a href="{{ gruppo.link_chat }}"
+                                   class="button is-link is-fullwidth"
+                                   target="_blank">
+
+                                <span class="icon">
+                                    <i class="fa-solid fa-comments"></i>
+                                </span>
+
+                                    <span>Apri la chat</span>
+                                </a>
+                            {% else %}
+                                <button class="button is-fullwidth" disabled>
+                                    Chat non disponibile
+                                </button>
+                            {% endif %}
+
+
+                        {% elif richiesta_in_attesa %}
+
+                            <div class="notification is-warning">
+                                La tua richiesta di partecipazione è in attesa.
+                            </div>
+
+
+                        {% elif studente %}
+
+                            <p class="mb-4">
+                                Richiedi l’accesso per partecipare al gruppo,
+                                consultare i materiali e utilizzare la chat.
+                            </p>
+
+                            <form method="POST">
+                                {% csrf_token %}
+
+                                <input type="hidden"
+                                       name="azione"
+                                       value="richiedi_partecipazione">
+
+                                <button type="submit"
+                                        class="button is-link is-fullwidth">
+
+                                <span class="icon">
+                                    <i class="fa-solid fa-user-plus"></i>
+                                </span>
+
+                                    <span>Richiedi partecipazione</span>
+                                </button>
+                            </form>
+
+
+                        {% elif tutor %}
+
+                            <p class="mb-4">
+                                Puoi proporti per supportare questo gruppo.
+                            </p>
+
+                            <form method="POST">
+                                {% csrf_token %}
+
+                                <input type="hidden"
+                                       name="azione"
+                                       value="richiedi_supporto">
+
+                                <button type="submit"
+                                        class="button is-primary is-fullwidth">
+
+                                <span class="icon">
+                                    <i class="fa-solid fa-chalkboard-user"></i>
+                                </span>
+
+                                    <span>Supporta il gruppo</span>
+                                </button>
+                            </form>
+
+
+                        {% elif admin %}
+
+                            <div class="notification is-info">
+                                Puoi consultare il gruppo come amministratore.
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    </section>
 
 {% endblock %}

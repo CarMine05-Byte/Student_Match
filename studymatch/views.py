@@ -145,7 +145,7 @@ def home(request, extra_content=None):
             return render(request, "login.html", {"error": "Studente non trovato"})
 
         partecipa_stud = Partecipazione.objects.filter(studente=studente)
-        esami_stud = esami.filter(anno=studente.anno_corso, corso=studente.corso_laurea)
+        esami_stud = esami.filter(anno_corso=studente.anno_corso, corso=studente.corso_laurea)
         gruppi_stud = gruppo.filter(gruppo_esame__id_esame__in=esami_stud).exclude(
             id_gruppo__in=partecipa_stud.values('id_gruppo')).distinct()
         context = {
@@ -256,7 +256,7 @@ def crea_gruppo(request):
 
     utente = Utente.objects.filter(utente=user).first()
 
-    if ruolo != "admin" or ruolo != "tutor":
+    if ruolo not in ["admin", "tutor"]:
         return home(request, {"error": "Solo gli amministratori e i tutor possono creare e gestire il gruppo!"})
     if not utente:
         request.session.flush()
@@ -267,9 +267,10 @@ def crea_gruppo(request):
     if request.method == "POST":
         nome_gruppo = request.POST.get("nome_gruppo")
         descrizione = request.POST.get("descrizione")
+        link_chat = request.POST.get("link_chat")
         max_partecipanti = request.POST.get("max_partecipanti")
         id_esame = request.POST.get("id_esame")
-        periodo = request.POST.get("periodo")
+        periodo = request.POST.get("periodo") or 0
 
         if not nome_gruppo or not max_partecipanti or not id_esame:
             return render(request, "crea_gruppo.html", {"error": "Compila tutti i campi obbligatori", "esami": esami})
@@ -282,6 +283,7 @@ def crea_gruppo(request):
         gruppo = Gruppo.objects.create(
             nome_gruppo=nome_gruppo,
             descrizione=descrizione,
+            link_chat=link_chat,
             max_partecipanti=max_partecipanti
         )
         Assegnazione.objects.create(
@@ -305,8 +307,7 @@ def crea_gruppo(request):
                 Supporto.objects.create(
                     tutor=tutor,
                     id_gruppo=gruppo,
-                    punteggio=0,
-                    stato=True
+                    punteggio=0
                 )
                 return home(request, {"success": "Gruppo creato con successo!"})
     return render(request, "crea_gruppo.html", {"esami": esami})
@@ -317,12 +318,102 @@ def dettaglio_gruppo(request, id_gruppo):
     ruolo = request.session.get('ruolo')
 
     if not user:
-        return render(request, "login.html", )
-    return render(request, 'dettaglio_gruppo.html')
+        return render(request, "login.html", {"error": "Sessione Scaduta"})
+
+    utente = Utente.objects.filter(utente=user).first()
+    if not utente:
+        request.session.flush()
+        return render(request, "login.html", {"error": "Utente non trovato"})
+
+    gruppo = Gruppo.objects.filter(id_gruppo=id_gruppo).first()
+    if not gruppo:
+        return home(request, {"error": "Gruppo non trovato"})
+
+    partecipazioni = Partecipazione.objects.filter(id_gruppo=gruppo)
+    supporti = Supporto.objects.filter(id_gruppo=gruppo)
+    assegnazioni = Assegnazione.objects.filter(id_gruppo=gruppo)
+    posti_occupati = partecipazioni.count()
+    posti_disponibili = max(gruppo.max_partecipanti - posti_occupati, 0)
+
+    context = {
+        "utente": utente,
+        "ruolo": ruolo,
+        "gruppo": gruppo,
+        "assegnazioni": assegnazioni,
+        "partecipazioni": partecipazioni,
+        "supporti": supporti,
+        "posti_occupati": posti_occupati,
+        "posti_disponibili": posti_disponibili,
+    }
+
+    if ruolo == "studente":
+        studente = Studente.objects.filter(studente=utente).first()
+        context["studente"] = studente
+        context["iscritto"] = Partecipazione.objects.filter(
+            studente=studente,
+            id_gruppo=gruppo
+        ).exists() if studente else False
+    elif ruolo == "tutor":
+        tutor = Tutor.objects.filter(tutor=utente).first()
+        context["tutor"] = tutor
+        context["segue_gruppo"] = Supporto.objects.filter(
+            tutor=tutor,
+            id_gruppo=gruppo
+        ).exists() if tutor else False
+    elif ruolo == "admin":
+        admin = Admin.objects.filter(admin=utente).first()
+        context["admin"] = admin
+        context["gestisce_gruppo"] = Gestione.objects.filter(
+            admin=admin,
+            id_gruppo=gruppo
+        ).exists() if admin else False
+
+    return render(request, 'dettaglio_gruppo.html', context)
 
 
 def esame(request):
-    return render(request, 'esami.html')
+    user = request.session.get("user")
+    ruolo = request.session.get("ruolo")
+
+    if not user:
+        return render(request, "login.html", {"error": "Sessione Scaduta"})
+
+    if ruolo != "admin":
+        return home(request, {"error": "Solo gli admin possono creare esami."})
+
+    corsi = get_corsi_laurea()
+
+    if request.method == "POST":
+        nome_esame = request.POST.get("nome_esame")
+        corso = request.POST.get("corso")
+        anno_corso = request.POST.get("anno_corso")
+        semestre = request.POST.get("semestre")
+        cfu = request.POST.get("cfu")
+
+        if not nome_esame or not corso or not anno_corso or not semestre or not cfu:
+            return render(request, "crea_esame.html", {"corsi": corsi, "error": "Compila tutti i campi."})
+
+        esame_esistente = Esame.objects.filter(
+            nome_esame=nome_esame,
+            corso=corso,
+            anno_corso=anno_corso
+        ).exists()
+
+        if esame_esistente:
+            return render(request, "crea_esame.html", {
+                "corsi": corsi,
+                "error": "Questo esame è già presente."
+            })
+        Esame.objects.create(
+            nome_esame=nome_esame,
+            corso=corso,
+            anno_corso=anno_corso,
+            semestre=semestre,
+            cfu=cfu
+        )
+
+        return render(request, "crea_esame.html", {"corsi": corsi, "success": "Esame creato correttamente."})
+    return render(request, 'crea_esame.html', {"corsi": corsi})
 
 
 def notifica(request):

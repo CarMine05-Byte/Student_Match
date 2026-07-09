@@ -1,0 +1,167 @@
+{% extends "index.html" %}
+
+{% block title %}Crea esame | StudentMatch{% endblock %}
+
+{% block content %}
+
+<section class="section">
+    <div class="container">
+
+        <div class="columns is-centered">
+            <div class="column is-8-tablet is-6-desktop">
+
+                <div class="box">
+
+                    <h1 class="title">
+                        Crea un esame
+                    </h1>
+
+                    <p class="subtitle is-6">
+                        Inserisci le informazioni dell’esame
+                    </p>
+
+                    {% if error %}
+                        <div class="notification is-danger">
+                            {{ error }}
+                        </div>
+                    {% endif %}
+
+                    {% if success %}
+                        <div class="notification is-success">
+                            {{ success }}
+                        </div>
+
+                        <a href="{% url 'crea_gruppo' %}"
+                           class="button is-link mb-5">
+                            Crea un gruppo
+                        </a>
+                    {% endif %}
+
+                    <form method="POST">
+                        {% csrf_token %}
+
+                        <div class="field">
+                            <label class="label">
+                                Nome esame
+                            </label>
+
+                            <div class="control">
+                                <input
+                                    class="input"
+                                    type="text"
+                                    name="nome_esame"
+                                    required
+                                >
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="label">
+                                Corso di laurea
+                            </label>
+
+                            <div class="control">
+                                <div class="select is-fullwidth">
+                                    <select name="corso" required>
+                                        <option value="" disabled selected>
+                                            Seleziona il corso di laurea
+                                        </option>
+
+                                        {% for corso in corsi %}
+                                            <option value="{{ corso }}">
+                                                {{ corso }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="label">
+                                Anno di corso
+                            </label>
+
+                            <div class="control">
+                                <input
+                                    class="input"
+                                    type="number"
+                                    name="anno_corso"
+                                    min="1"
+                                    max="6"
+                                    required
+                                >
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="label">
+                                Semestre
+                            </label>
+
+                            <div class="control">
+                                <div class="select is-fullwidth">
+                                    <select name="semestre" required>
+                                        <option value="" disabled selected>
+                                            Seleziona il semestre
+                                        </option>
+
+                                        <option value="1">
+                                            Primo semestre
+                                        </option>
+
+                                        <option value="2">
+                                            Secondo semestre
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="label">
+                                CFU
+                            </label>
+
+                            <div class="control">
+                                <input
+                                    class="input"
+                                    type="number"
+                                    name="cfu"
+                                    min="1"
+                                    max="30"
+                                    required
+                                >
+                            </div>
+                        </div>
+
+                        <div class="field is-grouped mt-5">
+
+                            <div class="control">
+                                <button
+                                    class="button is-link"
+                                    type="submit"
+                                >
+                                    Crea esame
+                                </button>
+                            </div>
+
+                            <div class="control">
+                                <a href="{% url 'home' %}"
+                                   class="button">
+                                    Annulla
+                                </a>
+                            </div>
+
+                        </div>
+
+                    </form>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+{% endblock %}

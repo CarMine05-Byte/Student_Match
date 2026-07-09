@@ -33,6 +33,15 @@
                     </div>
 
                     <div class="field">
+                        <label class="label">Link chat</label>
+                        <div class="control">
+                            <label>
+                                <input class="input" type="url" name="link_chat" id="link_chat">
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="field">
                         <label class="label">Numero massimo partecipanti</label>
                         <div class="control">
                             <label>
@@ -50,7 +59,7 @@
                                         <option disabled selected>Seleziona esame</option>
                                         {% for esame in esami %}
                                             <option value="{{ esame.id_esame }}">
-                                                {{ esame.nome }} - {{ esame.corso }} - Anno {{ esame.anno }}
+                                                {{ esame.nome_esame }} - {{ esame.corso }} - Anno {{ esame.anno_corso }}
                                             </option>
                                         {% endfor %}
                                     </select>

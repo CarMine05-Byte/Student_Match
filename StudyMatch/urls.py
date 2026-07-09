@@ -16,6 +16,7 @@ Including another URLconf
 """
 # from django.contrib import admin
 from django.urls import path
+
 from studymatch import views
 
 urlpatterns = [
@@ -26,8 +27,8 @@ urlpatterns = [
     path('profile/', views.profile, name='profile'),
     path('gruppo/<int:id_gruppo>', views.dettaglio_gruppo, name='dettaglio_gruppo'),
     path('crea_gruppo', views.crea_gruppo, name='crea_gruppo'),
-    path('esami', views.esame, name='esami'),
+    path('crea_esame', views.esame, name='esame'),
     path('notifiche/', views.notifica, name='notifiche'),
-path('logout/', views.logout, name='logout')
+    path('logout/', views.logout, name='logout')
 
 ]

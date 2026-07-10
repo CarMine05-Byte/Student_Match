@@ -163,7 +163,7 @@ def home(request, extra_content=None):
         supporto_tut = Supporto.objects.filter(tutor=tutor)
         gruppi_tut = gruppo.filter(id_gruppo__in=supporto_tut.values("id_gruppo")).distinct()
 
-        gruppi_gia_seguiti = Supporto.objects.values_list("id_gruppo", flat=True)
+        gruppi_gia_seguiti = supporto_tut.values_list("id_gruppo", flat=True)
         gruppi_disp_tut = gruppo.exclude(
             id_gruppo__in=gruppi_gia_seguiti
         )
@@ -335,7 +335,7 @@ def dettaglio_gruppo(request, id_gruppo):
         "gruppo": gruppo,
         "assegnazioni": assegnazioni
     }
-
+    # Ruolo Studente
     if ruolo == "studente":
         studente = Studente.objects.filter(studente=utente).first()
 
@@ -350,30 +350,16 @@ def dettaglio_gruppo(request, id_gruppo):
         context["studente"] = studente
         context["partecipazione_utente"] = partecipazione_utente
         context["gruppo_compatibile"] = gruppo_compatibile
+
         if request.method == "POST":
-            azione = request.POST.get("azione")
-
-            if azione == "richiedi_partecipazione":
-
-                if not gruppo_compatibile:
-                    context["error"] = ("Non puoi partecipare a un gruppo associato"
-                                        "a un corso o anno diverso dal tuo.")
-                elif partecipazione_utente:
-                    context["error"] = (
-                        "Hai già inviato una richiesta per questo gruppo."
-                    )
-                else:
-                    partecipazione_utente = Partecipazione.objects.create(
-                        studente=studente,
-                        id_gruppo=gruppo,
-                        stato=False
-                    )
-
-                    context["partecipazione_utente"] = partecipazione_utente
-                    context["success"] = (
-                        "Richiesta di partecipazione inviata."
-                    )
-
+            gestisci_post_studente(
+                request,
+                studente,
+                gruppo,
+                gruppo_compatibile,
+                context
+            )
+    # Ruolo Tutor
     elif ruolo == "tutor":
         tutor = Tutor.objects.filter(
             tutor=utente
@@ -388,26 +374,13 @@ def dettaglio_gruppo(request, id_gruppo):
         context["supporto_utente"] = supporto_utente
 
         if request.method == "POST":
-            azione = request.POST.get("azione")
-
-            if azione == "richiedi_supporto":
-
-                if supporto_utente:
-                    context["error"] = (
-                        "Hai già inviato una richiesta di supporto."
-                    )
-
-                else:
-                    supporto_utente = Supporto.objects.create(
-                        tutor=tutor,
-                        id_gruppo=gruppo,
-                        stato=False
-                    )
-
-                    context["supporto_utente"] = supporto_utente
-                    context["success"] = (
-                        "Richiesta di supporto inviata."
-                    )
+            gestisci_post_tutor(
+                request,
+                tutor,
+                supporto_utente,
+                gruppo,
+                context
+            )
     # Ruolo Admin
     elif ruolo == "admin":
         admin = Admin.objects.filter(
@@ -422,106 +395,19 @@ def dettaglio_gruppo(request, id_gruppo):
 
         # Parte di codice per accettare la richiesta da parte di utenti
         if request.method == "POST":
-            azione = request.POST.get("azione")
-            richiesta_id = request.POST.get("richiesta_id")
-
-            if not gestisce_gruppo:
-                context["error"] = (
-                    "Non sei autorizzato a gestire le richieste di questo gruppo")
-            # Accetta richieste partecipazione
-            elif azione == "accetta_partecipazione":
-                richiesta = Partecipazione.objects.filter(
-                    id=richiesta_id,
-                    id_gruppo=gruppo,
-                    stato=False
-                ).first()
-                conteggio = Partecipazione.objects.filter(
-                    id_gruppo=gruppo,
-                    stato=True
-                ).count()
-                if not richiesta:
-                    context["error"] = "Richiesta di partecipazione non trovata."
-
-                elif conteggio >= gruppo.max_partecipanti:
-                    context["error"] = ("Non puoi accettare la richiesta:"
-                                        "il gruppo ha raggiunto il limite massimo")
-
-                else:
-                    richiesta.stato = True
-                    richiesta.save()
-
-                    context["success"] = (
-                        "Richiesta di partecipazione accettata."
-                    )
-            # Rifiuta richieste partecipazione
-            elif azione == "rifiuta_partecipazione":
-                richiesta = Partecipazione.objects.filter(
-                    id=richiesta_id,
-                    id_gruppo=gruppo,
-                    stato=False
-                ).first()
-                if richiesta:
-                    richiesta.delete()
-                    context["success"] = (
-                        "Richiesta di partecipazione rifiutata."
-                    )
-                else:
-                    context["error"] = (
-                        "Richiesta di partecipazione non trovata."
-                    )
-                # Accetta richieste supporto
-            elif azione == "accetta_supporto":
-                richiesta = Supporto.objects.filter(
-                    id=richiesta_id,
-                    id_gruppo=gruppo,
-                    stato=False
-                ).first()
-
-                tutor_presente = Supporto.objects.filter(
-                    id_gruppo=gruppo,
-                    stato=True
-                ).exists()
-
-                if not richiesta:
-                    context["error"] = "Richiesta del tutor non trovata."
-
-                elif tutor_presente:
-                    context["error"] = (
-                        "Il gruppo possiede già un tutor."
-                    )
-                else:
-                    richiesta.stato = True
-                    richiesta.save()
-
-                    context["success"] = (
-                        "Richiesta del tutor accettata."
-                    )
-            # Rifiuta richieste supporto
-            elif azione == "rifiuta_supporto":
-                richiesta = Supporto.objects.filter(
-                    id_gruppo=gruppo,
-                    stato=False
-                ).exists()
-
-                if richiesta:
-                    richiesta.delete()
-                    context["success"] = (
-                        "Richiesta del tutor rifiutata."
-                    )
-                else:
-                    context["error"] = "Richiesta del tutor non trovata"
+            gestisci_post_admin(
+                request,
+                gestisce_gruppo,
+                gruppo,
+                context
+            )
         context["richieste_studenti"] = Partecipazione.objects.filter(
             id_gruppo=gruppo,
             stato=False
         )
 
-        context["richieste_tutor"] = Supporto.objects.filter(
-            id_gruppo=gruppo,
-            stato=False
-        )
-
         partecipazioni = Partecipazione.objects.filter(id_gruppo=gruppo, stato=True)
-        supporti = Supporto.objects.filter(id_gruppo=gruppo, stato=True)
+        supporti = Supporto.objects.filter(id_gruppo=gruppo)
 
         posti_occupati = Partecipazione.objects.filter(
             id_gruppo=gruppo,
@@ -602,3 +488,203 @@ def get_ruoli_utente(utente):
 def logout(request):
     request.session.flush()
     return render(request, "login.html")
+
+
+####FUNZIONI AUSILIARI PER FUN DETTAGLIO_GRUPPO
+def carica_materiale_gruppo(request, gruppo, context):
+    materiale_file = request.FILES.get("file_materiale")
+
+    if not materiale_file:
+        context["error"] = "Seleziona un file da caricare."
+        return
+
+    nome_file = materiale_file.name[:150]
+
+    if Materiale.objects.filter(nome_file=nome_file).exists():
+        context["error"] = "Esiste già un file con questo nome."
+        return
+
+    materiale = Materiale.objects.create(
+        nome_file=nome_file,
+        tipo="file",
+        file=materiale_file
+    )
+
+    Condivisione.objects.create(
+        file=materiale,
+        id_gruppo=gruppo
+    )
+
+    context["success"] = "File caricato correttamente."
+
+
+def richiedi_partecipazione_gruppo(studente, gruppo, gruppo_compatibile, context):
+    if not studente:
+        context["error"] = "Profilo studente non trovato."
+        return
+
+    if not gruppo_compatibile:
+        context["error"] = (
+            "Non puoi partecipare a un gruppo associato"
+            "a un corso o anno diverso dal tuo."
+        )
+        return
+
+    partecipazione = Partecipazione.objects.filter(
+        studente=studente,
+        id_gruppo=gruppo
+    ).first()
+
+    if partecipazione:
+        context["error"] = "Hai già inviato una richiesta per questo gruppo."
+        return
+
+    partecipazione = Partecipazione.objects.create(
+        studente=studente,
+        id_gruppo=gruppo,
+        stato=False
+    )
+    context["partecipazione_utente"] = partecipazione
+    context["success"] = "Richiesta di partecipazione inviata."
+
+
+def entra_come_tutor_gruppo(tutor, gruppo, context):
+    if not tutor:
+        context["error"] = "Profilo tutor non trovato."
+        return
+
+    supporto = Supporto.objects.filter(
+        tutor=tutor,
+        id_gruppo=gruppo
+    ).first()
+
+    if supporto:
+        context["error"] = "Stai già supportando questo gruppo."
+        return
+
+    supporto = Supporto.objects.create(
+        tutor=tutor,
+        id_gruppo=gruppo
+    )
+    context["supporto_utente"] = supporto
+    context["success"] = "Sei entrato nel gruppo come tutor."
+
+
+def accetta_partecipazione_gruppo(richiesta_id, gruppo, context):
+    richiesta = Partecipazione.objects.filter(
+        id=richiesta_id,
+        id_gruppo=gruppo,
+        stato=False
+    ).first()
+    conteggio = Partecipazione.objects.filter(
+        id_gruppo=gruppo,
+        stato=True
+    ).count()
+
+    if not richiesta:
+        context["error"] = "Richiesta di partecipazione non trovata."
+    elif conteggio >= gruppo.max_partecipanti:
+        context["error"] = (
+            "Non puoi accettare la richiesta:"
+            "il gruppo ha raggiunto il limite massimo"
+        )
+    else:
+        richiesta.stato = True
+        richiesta.save()
+        context["success"] = "Richiesta di partecipazione accettata."
+
+
+def rifiuta_partecipazione_gruppo(richiesta_id, gruppo, context):
+    richiesta = Partecipazione.objects.filter(
+        id=richiesta_id,
+        id_gruppo=gruppo,
+        stato=False
+    ).first()
+
+    if richiesta:
+        richiesta.delete()
+        context["success"] = "Richiesta di partecipazione rifiutata."
+    else:
+        context["error"] = "Richiesta di partecipazione non trovata."
+
+
+def modifica_gruppo(request, gruppo, context):
+    nome_gruppo = (request.POST.get("nome_gruppo") or "").strip()
+    descrizione = (request.POST.get("descrizione") or "").strip()
+    link_chat = (request.POST.get("link_chat") or "").strip()
+    max_partecipanti = request.POST.get("max_partecipanti")
+
+    try:
+        max_partecipanti = int(max_partecipanti)
+    except (TypeError, ValueError):
+        max_partecipanti = 0
+
+    partecipanti_confermati = Partecipazione.objects.filter(
+        id_gruppo=gruppo,
+        stato=True
+    ).count()
+
+    if not nome_gruppo:
+        context["error"] = "Inserisci il nome del gruppo."
+    elif max_partecipanti < partecipanti_confermati:
+        context["error"] = (
+            "I posti massimi non possono essere inferiori "
+            "ai partecipanti già confermati."
+        )
+    elif max_partecipanti < 1:
+        context["error"] = "Inserisci almeno un posto disponibile."
+    else:
+        gruppo.nome_gruppo = nome_gruppo
+        gruppo.descrizione = descrizione
+        gruppo.link_chat = link_chat
+        gruppo.max_partecipanti = max_partecipanti
+        gruppo.save()
+        context["success"] = "Gruppo aggiornato correttamente."
+
+
+def modifica_link_chat_gruppo(request, gruppo, context):
+    gruppo.link_chat = (request.POST.get("link_chat") or "").strip()
+    gruppo.save()
+    context["success"] = "Link chat aggiornato correttamente."
+
+
+def gestisci_post_studente(request, studente, gruppo, gruppo_compatibile, context):
+    azione = request.POST.get("azione")
+
+    if azione == "richiedi_partecipazione":
+        richiedi_partecipazione_gruppo(
+            studente,
+            gruppo,
+            gruppo_compatibile,
+            context
+        )
+
+
+def gestisci_post_tutor(request, tutor, supporto_utente, gruppo, context):
+    azione = request.POST.get("azione")
+
+    if azione == "entra_supporto":
+        entra_come_tutor_gruppo(tutor, gruppo, context)
+    elif azione == "carica_materiale":
+        if supporto_utente:
+            carica_materiale_gruppo(request, gruppo, context)
+        else:
+            context["error"] = "Devi supportare il gruppo per caricare materiali."
+
+
+def gestisci_post_admin(request, gestisce_gruppo, gruppo, context):
+    azione = request.POST.get("azione")
+    richiesta_id = request.POST.get("richiesta_id")
+
+    if not gestisce_gruppo:
+        context["error"] = "Non sei autorizzato a gestire le richieste di questo gruppo"
+    elif azione == "accetta_partecipazione":
+        accetta_partecipazione_gruppo(richiesta_id, gruppo, context)
+    elif azione == "rifiuta_partecipazione":
+        rifiuta_partecipazione_gruppo(richiesta_id, gruppo, context)
+    elif azione == "carica_materiale":
+        carica_materiale_gruppo(request, gruppo, context)
+    elif azione == "modifica_link_chat":
+        modifica_link_chat_gruppo(request, gruppo, context)
+    elif azione == "modifica_gruppo":
+        modifica_gruppo(request, gruppo, context)

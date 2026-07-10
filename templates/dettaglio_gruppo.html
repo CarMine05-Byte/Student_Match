@@ -161,7 +161,7 @@
 
 
                     <!-- Area riservata -->
-                    {% if studente and partecipazione_utente.stato or tutor and supporto_utente.stato or admin and gestisce_gruppo %}
+                    {% if studente and partecipazione_utente.stato or tutor and supporto_utente or admin and gestisce_gruppo %}
 
                         <div class="card">
 
@@ -175,6 +175,52 @@
                             </header>
 
                             <div class="card-content">
+
+                                {% if tutor and supporto_utente or admin and gestisce_gruppo %}
+                                    <form method="POST"
+                                          enctype="multipart/form-data"
+                                          class="mb-5">
+                                        {% csrf_token %}
+
+                                        <input type="hidden"
+                                               name="azione"
+                                               value="carica_materiale">
+
+                                        <div class="field">
+                                            <label class="label">Carica file</label>
+
+                                            <div class="file has-name is-fullwidth">
+                                                <label class="file-label">
+                                                    <input class="file-input"
+                                                           type="file"
+                                                           name="file_materiale"
+                                                           required>
+
+                                                    <span class="file-cta">
+                                                    <span class="file-icon">
+                                                        <i class="fa-solid fa-upload"></i>
+                                                    </span>
+
+                                                    <span class="file-label">
+                                                        Scegli file
+                                                    </span>
+                                                </span>
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <button type="submit"
+                                                class="button is-link is-small">
+                                        <span class="icon">
+                                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                                        </span>
+
+                                            <span>Carica</span>
+                                        </button>
+                                    </form>
+
+                                    <hr>
+                                {% endif %}
 
                                 {% for condivisione in gruppo.gruppo_associato.all %}
 
@@ -309,9 +355,9 @@
                                 <progress
                                         class="progress is-link"
                                         {% if admin %}
-                                            value="{{ posti_occupati }}"
+                                        value="{{ posti_occupati }}"
                                         {% else %}
-                                            value="{{ gruppo.gruppo_utente.count }}"
+                                        value="{{ gruppo.gruppo_utente.count }}"
                                         {% endif %}
                                         max="{{ gruppo.max_partecipanti }}">
                                     {% if admin %}
@@ -345,7 +391,7 @@
                                 {% for supporto in gruppo.gruppo_tutor.all %}
 
                                     <div class="tags">
-                                    <span class="tag {% if supporto.stato %}is-primary{% else %}is-warning{% endif %}">
+                                    <span class="tag is-primary">
                                         {% if supporto.tutor.tutor.nome or supporto.tutor.tutor.cognome %}
                                             {{ supporto.tutor.tutor.nome }}
                                             {{ supporto.tutor.tutor.cognome }}
@@ -353,9 +399,6 @@
                                             {{ supporto.tutor.tutor.utente }}
                                         {% endif %}
                                     </span>
-                                        {% if not supporto.stato %}
-                                            <span class="tag is-light">In attesa</span>
-                                        {% endif %}
                                     </div>
 
                                 {% empty %}
@@ -421,20 +464,13 @@
                                     </div>
 
                                     {% if gruppo.link_chat %}
-                                        <a href="{{ gruppo.link_chat }}"
-                                           class="button is-link is-fullwidth"
-                                           target="_blank">
-
-                    <span class="icon">
-                        <i class="fa-solid fa-comments"></i>
-                    </span>
-
-                                            <span>Apri la chat</span>
-                                        </a>
-                                    {% else %}
-                                        <button class="button is-fullwidth" disabled>
-                                            Chat non disponibile
-                                        </button>
+                                        <p>
+                                            <strong>Link chat:</strong>
+                                            <a href="{{ gruppo.link_chat }}"
+                                               target="_blank">
+                                                {{ gruppo.link_chat }}
+                                            </a>
+                                        </p>
                                     {% endif %}
 
                                 {% else %}
@@ -488,41 +524,24 @@
 
                             {% if supporto_utente %}
 
-                                {% if supporto_utente.stato %}
+                                <div class="notification is-success">
+                                    Stai supportando questo gruppo.
+                                </div>
 
-                                    <div class="notification is-success">
-                                        La tua richiesta di supporto è stata confermata.
-                                    </div>
-
-                                    {% if gruppo.link_chat %}
+                                {% if gruppo.link_chat %}
+                                    <p>
+                                        <strong>Link chat:</strong>
                                         <a href="{{ gruppo.link_chat }}"
-                                           class="button is-primary is-fullwidth"
                                            target="_blank">
-
-                    <span class="icon">
-                        <i class="fa-solid fa-comments"></i>
-                    </span>
-
-                                            <span>Apri la chat</span>
+                                            {{ gruppo.link_chat }}
                                         </a>
-                                    {% else %}
-                                        <button class="button is-fullwidth" disabled>
-                                            Chat non disponibile
-                                        </button>
-                                    {% endif %}
-
-                                {% else %}
-
-                                    <div class="notification is-warning">
-                                        La tua richiesta di supporto è in attesa.
-                                    </div>
-
+                                    </p>
                                 {% endif %}
 
                             {% else %}
 
                                 <p class="mb-4">
-                                    Puoi proporti per supportare questo gruppo.
+                                    Entra nel gruppo per supportarlo come tutor.
                                 </p>
 
                                 <form method="POST">
@@ -530,16 +549,16 @@
 
                                     <input type="hidden"
                                            name="azione"
-                                           value="richiedi_supporto">
+                                           value="entra_supporto">
 
                                     <button type="submit"
                                             class="button is-primary is-fullwidth">
 
-                <span class="icon">
-                    <i class="fa-solid fa-chalkboard-user"></i>
-                </span>
+                                        <span class="icon">
+                                         <i class="fa-solid fa-chalkboard-user"></i>
+                                         </span>
 
-                                        <span>Richiedi supporto</span>
+                                        <span>Entra come tutor</span>
                                     </button>
                                 </form>
 
@@ -553,6 +572,35 @@
                                 <div class="notification is-info">
                                     Sei l’amministratore responsabile di questo gruppo.
                                 </div>
+
+                                <form method="POST" class="mb-4">
+                                    {% csrf_token %}
+
+                                    <input type="hidden"
+                                           name="azione"
+                                           value="modifica_link_chat">
+
+                                    <div class="field">
+                                        <label class="label">Link chat</label>
+                                        <div class="control">
+                                            <input class="input"
+                                                   type="url"
+                                                   name="link_chat"
+                                                   value="{{ gruppo.link_chat }}"
+                                                   placeholder="https://...">
+                                        </div>
+                                    </div>
+
+                                    <button type="submit"
+                                            class="button is-link is-fullwidth">
+                                    <span class="icon">
+                                        <i class="fa-solid fa-floppy-disk"></i>
+                                    </span>
+
+                                        <span>Salva link chat</span>
+                                    </button>
+                                </form>
+
                                 {# Richieste degli studenti #}
                                 <hr>
 
@@ -565,9 +613,9 @@
                                     <article class="media mb-5">
 
                                         <div class="media-left">
-            <span class="icon">
-                <i class="fa-solid fa-user"></i>
-            </span>
+                                             <span class="icon">
+                                              <i class="fa-solid fa-user"></i>
+                                              </span>
                                         </div>
 
                                         <div class="media-content">
@@ -635,101 +683,6 @@
                                     </div>
 
                                 {% endfor %}
-                                <hr>
-
-                                <h3 class="title is-6">
-                                    Richieste dei tutor
-                                </h3>
-
-                                {% for richiesta in richieste_tutor %}
-
-                                    <article class="media mb-5">
-
-                                        <div class="media-left">
-                                    <span class="icon">
-                                     <i class="fa-solid fa-chalkboard-user"></i>
-                                    </span>
-                                        </div>
-
-                                        <div class="media-content">
-
-                                            <p class="has-text-weight-semibold">
-                                                {% if richiesta.tutor.tutor.nome or richiesta.tutor.tutor.cognome %}
-                                                    {{ richiesta.tutor.tutor.nome }}
-                                                    {{ richiesta.tutor.tutor.cognome }}
-                                                {% else %}
-                                                    {{ richiesta.tutor.tutor.utente }}
-                                                {% endif %}
-                                            </p>
-
-                                            <p>
-                                                {{ richiesta.tutor.dipartimento }}
-                                                · {{ richiesta.tutor.area_competenza }}
-                                            </p>
-
-                                            <div class="buttons mt-3">
-
-                                                <form method="POST">
-                                                    {% csrf_token %}
-
-                                                    <input type="hidden"
-                                                           name="azione"
-                                                           value="accetta_supporto">
-
-                                                    <input type="hidden"
-                                                           name="richiesta_id"
-                                                           value="{{ richiesta.id }}">
-
-                                                    <button type="submit"
-                                                            class="button is-success is-small">
-                                                        Accetta
-                                                    </button>
-                                                </form>
-
-                                                <form method="POST">
-                                                    {% csrf_token %}
-
-                                                    <input type="hidden"
-                                                           name="azione"
-                                                           value="rifiuta_supporto">
-
-                                                    <input type="hidden"
-                                                           name="richiesta_id"
-                                                           value="{{ richiesta.id }}">
-
-                                                    <button type="submit"
-                                                            class="button is-danger is-small">
-                                                        Rifiuta
-                                                    </button>
-                                                </form>
-
-                                            </div>
-
-                                        </div>
-
-                                    </article>
-
-                                {% empty %}
-
-                                    <div class="notification">
-                                        Non ci sono richieste di supporto in attesa.
-                                    </div>
-
-                                {% endfor %}
-
-
-                                {% if gruppo.link_chat %}
-                                    <a href="{{ gruppo.link_chat }}"
-                                       class="button is-link is-fullwidth"
-                                       target="_blank">
-
-                                    <span class="icon">
-                                     <i class="fa-solid fa-comments"></i>
-                                    </span>
-
-                                        <span>Apri la chat</span>
-                                    </a>
-                                {% endif %}
                             {% else %}
                                 <div class="notification">
                                     Puoi consultare le informazioni pubbliche del gruppo.

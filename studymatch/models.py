@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils import timezone
-
+from datetime import timedelta
 
 class Utente(models.Model):
     utente = models.CharField(max_length=50, primary_key=True)
@@ -44,7 +44,7 @@ class Gruppo(models.Model):
     id_gruppo = models.SmallAutoField(primary_key=True)
     nome_gruppo = models.CharField(max_length=50)
     link_chat = models.TextField(null=True, blank=True)
-    descrizione = models.TextField(null=True, blank=True)
+    descrizione = models.TextField(null=True, blank=True, max_length=300)
     max_partecipanti = models.SmallIntegerField(default=5)
 
 
@@ -95,7 +95,16 @@ class Svolgimento(models.Model):
 class Assegnazione(models.Model):
     id_esame = models.ForeignKey(Esame, on_delete=models.CASCADE, related_name="esame_gruppo")
     id_gruppo = models.ForeignKey(Gruppo, on_delete=models.CASCADE, related_name="gruppo_esame")
-    periodo = models.SmallIntegerField(default=0)
+    periodo = models.DateTimeField()
+
+    @property
+    def tempo_rimanente(self):
+        tempo = self.periodo - timezone.now()
+        return max(tempo, timedelta(0))
+
+    @property
+    def attiva(self):
+        return timezone.now() < self.periodo
 
     class Meta:
         unique_together = ('id_esame', 'id_gruppo')

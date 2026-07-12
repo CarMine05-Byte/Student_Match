@@ -36,6 +36,8 @@ def registration(request):
     # Estrazione dei dati
     if request.method == "POST":
         user = request.POST.get('user')
+        nome = (request.POST.get('nome') or '').strip()
+        cognome = (request.POST.get('cognome') or '').strip()
         email = (request.POST.get('email') or '').strip()
         pwd = request.POST.get('pass')
         ruolo = request.POST.get('ruolo')
@@ -74,7 +76,9 @@ def registration(request):
                 utente=user,
                 email=email,
                 password=hash_password(pwd),
-                ruolo=ruolo
+                ruolo=ruolo,
+                nome=nome,
+                cognome=cognome
             )
             if ruolo == "studente":
                 Studente.objects.create(
@@ -268,7 +272,7 @@ def crea_gruppo(request):
         link_chat = request.POST.get("link_chat")
         max_partecipanti = request.POST.get("max_partecipanti")
         id_esame = request.POST.get("id_esame")
-        periodo = request.POST.get("periodo") or 0
+        periodo = int(request.POST.get("periodo")) or 0
 
         if not nome_gruppo or not max_partecipanti or not id_esame:
             return render(request, "crea_gruppo.html", {"error": "Compila tutti i campi obbligatori", "esami": esami})
@@ -284,10 +288,11 @@ def crea_gruppo(request):
             link_chat=link_chat,
             max_partecipanti=max_partecipanti
         )
+
         Assegnazione.objects.create(
             id_gruppo=gruppo,
             id_esame=esame_selezionato,
-            periodo=periodo
+            periodo=timezone.now() + timedelta(days=periodo)
         )
         if ruolo == "admin":
             admin = Admin.objects.filter(admin=utente).first()

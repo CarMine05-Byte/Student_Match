@@ -69,15 +69,14 @@
                     </div>
 
                     {# campo periodo #}
-                    <div class="field">
-                        <label class="label">Periodo (Giorni)</label>
-                        <div class="control">
-                            <label>
-                                <input class="input" type="number" name="periodo" id="periodo" min="1" max="10000">
-                            </label>
-                        </div>
-                    </div>
+                    <label for="periodo">Periodo del gruppo</label>
 
+                    <select name="periodo" id="periodo" required>
+                        <option value="7">7 Giorni</option>
+                        <option value="14">14 Giorni</option>
+                        <option value="30">30 Giorni</option>
+                        <option value="60">60 Giorni</option>
+                    </select>
 
                     <button class="button is-link" type="submit">
                         Crea gruppo

@@ -135,8 +135,8 @@
 
                                                 <div class="column is-half">
                                                     <p>
-                                                        <strong>Periodo del gruppo:</strong><br>
-                                                        {{ assegnazione.periodo }} giorni
+                                                        <strong>Scadenza del gruppo:</strong><br>
+                                                        {{ assegnazione.periodo|date:"d/m/Y H:i" }}
                                                     </p>
                                                 </div>
 
@@ -628,7 +628,7 @@
                                                     {{ richiesta.studente.studente.utente }}
                                                 {% endif %}
                                             </p>
-
+                                            {# richiesta.studente.studente perchè il secondo studente si intende la generalizzazione dell ATTR.STUDENTE ----> UTENTE #}
                                             <p>
                                                 {{ richiesta.studente.corso_laurea }}
                                                 · Anno {{ richiesta.studente.anno_corso }}
@@ -687,6 +687,11 @@
                                 <div class="notification">
                                     Puoi consultare le informazioni pubbliche del gruppo.
                                 </div>
+
+                                {% for assegnazione in assegnazioni %}
+                                    <p>Scadenza: {{ assegnazione.periodo|date:"d/m/Y H:i" }}</p>
+                                    <p>Tempo rimanente: {{ assegnazione.tempo_rimanente }}</p>
+                                {% endfor %}
 
                             {% endif %}
 

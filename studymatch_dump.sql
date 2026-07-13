@@ -207,8 +207,6 @@ INSERT INTO studymatch_assegnazione VALUES(7,6,7,'2026-08-12 16:09:20.505150');
 INSERT INTO studymatch_assegnazione VALUES(8,7,8,'2026-09-11 16:18:37.515201');
 INSERT INTO studymatch_assegnazione VALUES(9,8,9,'2026-09-11 16:21:18.380643');
 CREATE TABLE IF NOT EXISTS "studymatch_invio" ("id" integer NOT NULL PRIMARY KEY AUTOINCREMENT, "testo" text NOT NULL, "data_invio" datetime NOT NULL, "letta" bool NOT NULL, "destinatario_id" varchar(50) NOT NULL REFERENCES "studymatch_utente" ("utente") DEFERRABLE INITIALLY DEFERRED, "mittente_id" bigint NOT NULL REFERENCES "studymatch_admin" ("id") DEFERRABLE INITIALLY DEFERRED);
-INSERT INTO studymatch_invio VALUES(1,'Ammazzatevi col gas.','2026-07-12 15:38:28.660903',0,'user_8x92k',1);
-INSERT INTO studymatch_invio VALUES(2,'Ammazzatevi col gas.','2026-07-12 15:38:28.665333',1,'test_user_7z3q',1);
 INSERT INTO studymatch_invio VALUES(3,'Buongiorno come va?','2026-07-12 15:51:15.940885',1,'test_user_7z3q',1);
 INSERT INTO studymatch_invio VALUES(4,'Buongiorno come va?','2026-07-12 15:51:15.950006',0,'studente_dev_x92',1);
 INSERT INTO studymatch_invio VALUES(5,'Buongiorno come state?','2026-07-12 15:53:11.226131',1,'m.rossi_test01',2);

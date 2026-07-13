@@ -22,7 +22,11 @@
                 </h1>
 
                 <p class="subtitle has-text-white-bis">
-                    Profilo personale
+                    {% if profilo_corrente %}
+                        Profilo personale
+                    {% else %}
+                        Profilo utente
+                    {% endif %}
                 </p>
 
                 <span class="tag is-white is-medium has-text-link has-text-weight-semibold">
@@ -267,25 +271,33 @@
 
                         <footer class="card-footer">
 
-                            <a href="{% url 'home' %}"
+                            <a href="{% if gruppo_ritorno %}{% url 'dettaglio_gruppo' gruppo_ritorno.id_gruppo %}{% else %}{% url 'home' %}{% endif %}"
                                class="card-footer-item has-text-link has-text-weight-semibold">
 
                                 <span class="icon mr-2">
                                     <i class="fa-solid fa-arrow-left"></i>
                                 </span>
 
-                                <span>Torna alla home</span>
-                            </a>
-
-                            <a href="{% url 'logout' %}"
-                               class="card-footer-item has-text-danger has-text-weight-semibold">
-
-                                <span class="icon mr-2">
-                                    <i class="fa-solid fa-right-from-bracket"></i>
+                                <span>
+                                    {% if gruppo_ritorno %}
+                                        Torna al gruppo
+                                    {% else %}
+                                        Torna alla home
+                                    {% endif %}
                                 </span>
-
-                                <span>Logout</span>
                             </a>
+
+                            {% if profilo_corrente %}
+                                <a href="{% url 'logout' %}"
+                                   class="card-footer-item has-text-danger has-text-weight-semibold">
+
+                                    <span class="icon mr-2">
+                                        <i class="fa-solid fa-right-from-bracket"></i>
+                                    </span>
+
+                                    <span>Logout</span>
+                                </a>
+                            {% endif %}
 
                         </footer>
 

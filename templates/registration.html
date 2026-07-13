@@ -21,7 +21,7 @@
                         {# Messaggio di errore (se presente) --> #}
                         {% if error %}
                             <div class="notification is-danger">
-                                <button class="delete "></button>
+                                <button class="delete" aria-label="chiudi"></button>
                                 {{ error }}
                             </div>
                         {% endif %}
@@ -29,7 +29,7 @@
                         {#  Messaggio di warning  #}
                         {% if warning %}
                             <div class="notification is-warning">
-                                <button class="delete"></button>
+                                <button class="delete" aria-label="chiudi"></button>
                                 {{ warning }}
                             </div>
 
@@ -207,11 +207,13 @@
         const campiStudente = document.getElementById("campi-studente");
         const campiTutor = document.getElementById("campi-tutor");
         const campiAdmin = document.getElementById("campi-admin");
+        const codiceInvito = document.getElementById("codice_invito");
 
         function mostraCampiRuolo() {
             campiStudente.hidden = true;
             campiTutor.hidden = true;
             campiAdmin.hidden = true;
+            codiceInvito.required = false;
 
             if (ruoloSelect.value === "studente") {
                 campiStudente.hidden = false;
@@ -219,6 +221,7 @@
                 campiTutor.hidden = false;
             } else if (ruoloSelect.value === "admin") {
                 campiAdmin.hidden = false;
+                codiceInvito.required = true;
             }
         }
 

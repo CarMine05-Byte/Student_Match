@@ -19,8 +19,12 @@
                         <h1 class="title is-4 has-text-centered">Area Login</h1>
                         {# Messaggio d'errore se presente #}
                         {% if error %}
-                            <p style="color: red;">ERRORE: {{ error_message }} : {{ error }}</p>
-                        {% else %}
+                            <div class="notification is-danger is-light" role="alert">
+                                <button class="delete" aria-label="chiudi"></button>
+                                <span class="icon">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </span> {{ error }}
+                            </div>
                         {% endif %}
                         {# Campo Email #}
                         <form method="post" action="{% url 'login' %}">

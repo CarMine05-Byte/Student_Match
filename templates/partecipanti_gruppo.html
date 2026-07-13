@@ -1,0 +1,68 @@
+{% extends "index.html" %}
+
+{% block title %}Partecipanti | StudentMatch{% endblock %}
+
+{% block content %}
+    <section class="section">
+        <div class="container">
+
+            <div class="level mb-5">
+                <div class="level-left">
+                    <div class="level-item">
+                        <div>
+                            <h1 class="title">
+                                Partecipanti
+                            </h1>
+                            <p class="subtitle">
+                                {{ gruppo.nome_gruppo }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="level-right">
+                    <div class="level-item">
+                        <a href="{% url 'dettaglio_gruppo' gruppo.id_gruppo %}" class="button">
+                            <span class="icon">
+                                <i class="fa-solid fa-arrow-left"></i>
+                            </span>
+                            <span>Torna al gruppo</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="box">
+                <h2 class="title is-5">
+                    <span class="icon has-text-info">
+                        <i class="fa-solid fa-user-graduate"></i>
+                    </span>
+                    <span>Studenti</span>
+                </h2>
+
+                {% for partecipazione in studenti_gruppo %}
+                    <article class="media">
+                        <div class="media-content">
+                            <a href="{% url 'profile_utente' partecipazione.studente.studente.utente %}?gruppo={{ gruppo.id_gruppo }}"
+                               class="has-text-weight-semibold">
+                                {% if partecipazione.studente.studente.nome or partecipazione.studente.studente.cognome %}
+                                    {{ partecipazione.studente.studente.nome }}
+                                    {{ partecipazione.studente.studente.cognome }}
+                                {% else %}
+                                    {{ partecipazione.studente.studente.utente }}
+                                {% endif %}
+                            </a>
+                            <p class="is-size-7 has-text-grey">
+                                {{ partecipazione.studente.corso_laurea }} -
+                                Anno {{ partecipazione.studente.anno_corso }}
+                            </p>
+                        </div>
+                    </article>
+                {% empty %}
+                    <p>Nessuno studente confermato.</p>
+                {% endfor %}
+            </div>
+
+        </div>
+    </section>
+{% endblock %}

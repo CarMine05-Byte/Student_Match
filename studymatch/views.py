@@ -1,7 +1,12 @@
+from django.db import IntegrityError
 from django.shortcuts import render
 
 from .models import *
 from .utils import hash_password, verify_password, get_corsi_laurea
+
+MAX_TUTOR_PER_GRUPPO = 4
+MAX_ADMIN_PER_GRUPPO = 2
+
 
 def index(request):
     return render(request, "index.html")
@@ -64,7 +69,13 @@ def registration(request):
         dipartimento = request.POST.get("dipartimento")
         area_competenza = request.POST.get("area_competenza")
         corso_laurea_tut = request.POST.get("corso_laurea_tut")
-        codice_invito = request.POST.get("codice_invito")
+        codice_invito = (request.POST.get("codice_invito") or "").strip()
+
+        if ruolo == "admin" and codice_invito != "ADMIN_2026":
+            return render(request, "registration.html", {
+                **registration_context,
+                "error": "Codice invito non valido",
+            })
 
         # Creazione dell'utente base e del profilo specifico.
         new_user = None
@@ -98,12 +109,6 @@ def registration(request):
                 )
 
         except Exception:
-            if ruolo == "admin" and codice_invito != "ADMIN_2026":
-                return render(request, "registration.html", {
-                    **registration_context,
-                    "error": "Codice invito non valido",
-                })
-
             if new_user is not None:
                 new_user.delete()
                 logout(request)
@@ -112,6 +117,7 @@ def registration(request):
                 "error": "Errore Creazione Profilo",
             })
         ruoli_utente = get_ruoli_utente(new_user)
+        # Acquisizione della sessione
         request.session["user"] = new_user.utente
         request.session["ruolo"] = new_user.ruolo
         return home(request, {
@@ -226,27 +232,38 @@ def profile(request):
         request.session.flush()
         return render(request, "login.html", {"error": "Utente non trovato"})
 
-    context = {
-        "utente": utente,
-        "ruolo": ruolo
-    }
-    if ruolo == "studente":
-        studente = Studente.objects.filter(studente=utente).first()
-        if not studente:
-            return render(request, "login.html", {"error": "Profilo Studente non trovato"})
-        context["studente"] = studente
-    elif ruolo == "tutor":
-        tutor = Tutor.objects.filter(tutor=utente).first()
-        if not tutor:
-            return render(request, "login.html", {"error": "Profilo Tutor non trovaot"})
-        context["tutor"] = tutor
-    elif ruolo == "admin":
-        admin = Admin.objects.filter(admin=utente).first()
-        if not admin:
-            return render(request, "login.html", {"error": "Profilo Admin non trovato"})
-        context["admin"] = admin
-    else:
-        return render(request, "login.html", {"error": "Ruolo non trovato"})
+    context, error = crea_context_profilo(utente, ruolo)
+    if error:
+        return render(request, "login.html", {"error": error})
+
+    context["profilo_corrente"] = True
+
+    return render(request, "profile.html", context)
+
+
+# Mostra il profilo di un utente collegato a un gruppo.
+def profile_utente(request, username):
+    user = request.session.get("user")
+
+    if not user:
+        return render(request, "login.html", {"error": "Errore sessione login scaduta"})
+
+    utente = Utente.objects.filter(utente=username).first()
+    if not utente:
+        return home(request, {"error": "Utente non trovato"})
+
+    if utente.ruolo not in ["studente", "tutor", "admin"]:
+        return home(request, {"error": "Profilo utente non consultabile."})
+
+    context, error = crea_context_profilo(utente, utente.ruolo)
+    if error:
+        return home(request, {"error": error})
+
+    gruppo_id = request.GET.get("gruppo")
+    if gruppo_id and gruppo_id.isdigit():
+        context["gruppo_ritorno"] = Gruppo.objects.filter(id_gruppo=gruppo_id).first()
+
+    context["profilo_corrente"] = username == user
 
     return render(request, "profile.html", context)
 
@@ -311,16 +328,6 @@ def crea_gruppo(request):
                 Gestione.objects.create(
                     admin=admin,
                     id_gruppo=gruppo
-                )
-                return home(request, {"success": "Gruppo creato con successo!"})
-        if ruolo == "tutor":
-            tutor = Tutor.objects.filter(tutor=utente).first()
-
-            if tutor:
-                Supporto.objects.create(
-                    tutor=tutor,
-                    id_gruppo=gruppo,
-                    punteggio=0
                 )
                 return home(request, {"success": "Gruppo creato con successo!"})
     return render(request, "crea_gruppo.html", {"esami": esami})
@@ -433,19 +440,47 @@ def dettaglio_gruppo(request, id_gruppo):
         )
         supporti = Supporto.objects.filter(id_gruppo=gruppo)
 
-        posti_occupati = Partecipazione.objects.filter(
-            id_gruppo=gruppo,
-            stato=True
-        ).count()
-        residuo = gruppo.max_partecipanti - posti_occupati
-        posti_disponibili = max(residuo, 0)
-
         context["partecipazioni"] = partecipazioni
         context["supporti"] = supporti
-        context["posti_occupati"] = posti_occupati
-        context["posti_disponibili"] = posti_disponibili
+
+    partecipanti_effettivi = Partecipazione.objects.filter(
+        id_gruppo=gruppo,
+        stato=True,
+    ).count()
+
+    residuo = gruppo.max_partecipanti - partecipanti_effettivi
+    posti_disponibili = max(residuo, 0)
+
+    context["partecipanti_effettivi"] = partecipanti_effettivi
+    context["posti_disponibili"] = posti_disponibili
 
     return render(request, "dettaglio_gruppo.html", context)
+
+
+def partecipanti_gruppo(request, id_gruppo):
+    user = request.session.get("user")
+    if not user:
+        return render(request, "login.html", {"error": "Sessione scaduta"})
+
+    utente = Utente.objects.filter(utente=user).first()
+    if not utente:
+        request.session.flush()
+        return render(request, "login.html", {"error": "Utente non trovato"})
+
+    gruppo = Gruppo.objects.filter(id_gruppo=id_gruppo).first()
+    if not gruppo:
+        return home(request, {"error": "Gruppo non trovato"})
+
+    studenti_gruppo = Partecipazione.objects.filter(
+        id_gruppo=gruppo,
+        stato=True
+    ).select_related("studente__studente")
+
+    return render(request, "partecipanti_gruppo.html", {
+        "utente": utente,
+        "gruppo": gruppo,
+        "studenti_gruppo": studenti_gruppo,
+    })
 
 
 # Permette agli admin di creare nuovi esami associabili ai gruppi.
@@ -520,7 +555,15 @@ def notifica(request):
         azione = request.POST.get("azione")
 
         if azione == "invia":
-            context.update(notifica_inv(request, utente))
+            admin = Admin.objects.filter(admin=utente).first()
+            id_gruppo = request.POST.get("id_gruppo")
+            testo = (request.POST.get("testo") or "").strip()
+
+            if not id_gruppo:
+                context["error"] = "Seleziona un gruppo."
+            else:
+                gruppo = Gruppo.objects.filter(id_gruppo=id_gruppo).first()
+                context.update(notifica_inv(admin, gruppo, testo))
         elif azione == "letta":
             lette = notifica_lette(utente)
             context["success"] = f"{lette} notifiche segnate come lette."
@@ -548,6 +591,7 @@ def logout(request):
     return render(request, "login.html")
 
 
+###FUNZIONI AUSILIARI######################################################################################################################################################################
 # Funzioni ausiliarie per materiali e partecipazione ai gruppi.
 def carica_materiale_gruppo(request, gruppo, context):
     materiale_file = request.FILES.get("file_materiale")
@@ -612,19 +656,29 @@ def entra_come_tutor_gruppo(tutor, gruppo, context):
         context["error"] = "Profilo tutor non trovato."
         return
 
-    supporto = Supporto.objects.filter(
+    supporto_check = Supporto.objects.filter(
         tutor=tutor,
         id_gruppo=gruppo
     ).first()
 
-    if supporto:
+    if supporto_check:
         context["error"] = "Stai già supportando questo gruppo."
         return
 
-    supporto = Supporto.objects.create(
-        tutor=tutor,
-        id_gruppo=gruppo
-    )
+    num_tutor = Supporto.objects.filter(id_gruppo=gruppo).count() >= MAX_TUTOR_PER_GRUPPO
+    if not num_tutor:
+        context["error"] = "Il gruppo ha già il numero massimo di tutor"
+        return
+
+    try:
+        supporto = Supporto.objects.create(
+            tutor=tutor,
+            id_gruppo=gruppo
+        )
+    except IntegrityError:
+        context["error"] = "Il gruppo ha già il numero massimo di tutor"
+        return
+
     context["supporto_utente"] = supporto
     context["success"] = "Sei entrato nel gruppo come tutor."
 
@@ -680,11 +734,19 @@ def entra_come_admin_gruppo(admin, gruppo, context):
     if gestione:
         context["error"] = "Gestisci già questo gruppo."
         return
+    gestione_count = Gestione.objects.filter(id_gruppo=gruppo).count() >= MAX_ADMIN_PER_GRUPPO
 
-    Gestione.objects.create(
-        admin=admin,
-        id_gruppo=gruppo
-    )
+    if gestione_count:
+        context["error"] = "Il gruppo ha già il numero massimo di amministratori."
+
+    try:
+        Gestione.objects.create(
+            admin=admin,
+            id_gruppo=gruppo
+        )
+    except IntegrityError:
+        context["error"] = "il gruppo ha già il numero massimo di amministratori"
+        return
     context["gestisce_gruppo"] = True
     context["success"] = "Ora gestisci questo gruppo."
 
@@ -721,12 +783,6 @@ def modifica_gruppo(request, gruppo, context):
         gruppo.max_partecipanti = max_partecipanti
         gruppo.save()
         context["success"] = "Gruppo aggiornato correttamente."
-
-
-def modifica_link_chat_gruppo(request, gruppo, context):
-    gruppo.link_chat = (request.POST.get("link_chat") or "").strip()
-    gruppo.save()
-    context["success"] = "Link chat aggiornato correttamente."
 
 
 # Dispatcher delle azioni POST per ruolo nella pagina dettaglio gruppo.
@@ -771,14 +827,16 @@ def gestisci_post_admin(request, admin, gestisce_gruppo, gruppo, context):
     elif azione == "carica_materiale":
         carica_materiale_gruppo(request, gruppo, context)
     elif azione == "modifica_link_chat":
-        modifica_link_chat_gruppo(request, gruppo, context)
+        gruppo.link_chat = (request.POST.get("link_chat") or "").strip()
+        gruppo.save()
+        context["success"] = "Link chat aggiornato correttamente."
     elif azione == "invia_notifica":
-        invia_notifica_gruppo(request, admin, gruppo, context)
+        testo = (request.POST.get("testo_notifica") or "").strip()
+        context.update(notifica_inv(admin, gruppo, testo))
     elif azione == "modifica_gruppo":
         modifica_gruppo(request, gruppo, context)
 
 
-# Funzioni ausiliarie per invio, ricezione e stato lettura delle notifiche.
 def gruppi_gestiti_admin(utente):
     admin = Admin.objects.filter(admin=utente).first()
     if not admin:
@@ -787,6 +845,35 @@ def gruppi_gestiti_admin(utente):
     return Gestione.objects.filter(admin=admin).select_related("id_gruppo")
 
 
+# Funzione per indirizzare i profili degli utenti di un gruppo.
+def crea_context_profilo(utente, ruolo):
+    context = {
+        "utente": utente,
+        "ruolo": ruolo
+    }
+
+    if ruolo == "studente":
+        studente = Studente.objects.filter(studente=utente).first()
+        if not studente:
+            return None, "Profilo Studente non trovato"
+        context["studente"] = studente
+    elif ruolo == "tutor":
+        tutor = Tutor.objects.filter(tutor=utente).first()
+        if not tutor:
+            return None, "Profilo Tutor non trovato"
+        context["tutor"] = tutor
+    elif ruolo == "admin":
+        admin = Admin.objects.filter(admin=utente).first()
+        if not admin:
+            return None, "Profilo Admin non trovato"
+        context["admin"] = admin
+    else:
+        return None, "Ruolo non trovato"
+
+    return context, None
+
+
+# Funzioni ausiliarie per invio, ricezione e stato lettura delle notifiche.
 def notifica_ric(utente):
     return Invio.objects.filter(
         destinatario=utente
@@ -796,25 +883,14 @@ def notifica_ric(utente):
     ).order_by("-data_invio")
 
 
-def notifica_lette(utente):
-    return Invio.objects.filter(destinatario=utente, letta=False).update(letta=True)
+def notifica_lette(user):
+    return Invio.objects.filter(destinatario=user, letta=False).update(letta=True)
 
 
-def notifica_inv(request, utente):
-    admin = Admin.objects.filter(admin=utente).first()
+def notifica_inv(admin, gruppo, testo):
     if not admin:
         return {"error": "Solo un admin può inviare notifiche."}
 
-    id_gruppo = request.POST.get("id_gruppo")
-    testo = (request.POST.get("testo") or "").strip()
-
-    if not id_gruppo:
-        return {"error": "Seleziona un gruppo."}
-
-    if not testo:
-        return {"error": "Il testo della notifica non può essere vuoto."}
-
-    gruppo = Gruppo.objects.filter(id_gruppo=id_gruppo).first()
     if not gruppo:
         return {"error": "Gruppo non trovato."}
 
@@ -822,11 +898,6 @@ def notifica_inv(request, utente):
         return {"error": "Non sei autorizzato a gestire questo gruppo."}
 
     return crea_notifiche_gruppo(admin, gruppo, testo)
-
-
-def invia_notifica_gruppo(request, admin, gruppo, context):
-    testo = (request.POST.get("testo_notifica") or "").strip()
-    context.update(crea_notifiche_gruppo(admin, gruppo, testo))
 
 
 def crea_notifiche_gruppo(admin, gruppo, testo):

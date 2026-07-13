@@ -1,88 +1,125 @@
 {% extends "index.html" %}
+
+{% block title %}Crea gruppo | StudentMatch{% endblock %}
+
 {% block content %}
     <section class="section">
         <div class="container">
-            <div class="box">
-                <h1 class="title">Crea gruppo</h1>
 
-                {% if error %}
-                    <div class="notification is-danger">
-                        {{ error }}
-                    </div>
-                {% endif %}
+            <div class="columns is-centered">
+                <div class="column is-8-tablet is-6-desktop">
 
-                <form method="POST">
-                    {% csrf_token %}
+                    <div class="box">
+                        <h1 class="title">
+                            Crea gruppo
+                        </h1>
 
-                    <div class="field">
-                        <label class="label">Nome gruppo</label>
-                        <div class="control">
-                            <label>
-                                <input class="input" type="text" name="nome_gruppo" id="nome_gruppo" required>
-                            </label>
-                        </div>
-                    </div>
+                        <p class="subtitle is-6">
+                            Inserisci le informazioni del gruppo
+                        </p>
 
-                    <div class="field">
-                        <label class="label">Descrizione</label>
-                        <div class="control">
-                            <label>
-                                <textarea class="textarea" name="descrizione"></textarea>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="field">
-                        <label class="label">Link chat</label>
-                        <div class="control">
-                            <label>
-                                <input class="input" type="url" name="link_chat" id="link_chat">
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="field">
-                        <label class="label">Numero massimo partecipanti</label>
-                        <div class="control">
-                            <label>
-                                <input class="input" type="number" name="max_partecipanti" min="1" required>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="field">
-                        <label class="label">Esame associato</label>
-                        <div class="control">
-                            <div class="select is-fullwidth">
-                                <label>
-                                    <select name="id_esame" required>
-                                        <option disabled selected>Seleziona esame</option>
-                                        {% for esame in esami %}
-                                            <option value="{{ esame.id_esame }}">
-                                                {{ esame.nome_esame }} - {{ esame.corso }} - Anno {{ esame.anno_corso }}
-                                            </option>
-                                        {% endfor %}
-                                    </select>
-                                </label>
+                        {% if error %}
+                            <div class="notification is-danger">
+                                <button class="delete" aria-label="chiudi"></button>
+                                {{ error }}
                             </div>
-                        </div>
+                        {% endif %}
+
+                        <form method="POST">
+                            {% csrf_token %}
+
+                            <div class="field">
+                                <label class="label" for="nome_gruppo">
+                                    Nome gruppo
+                                </label>
+                                <div class="control">
+                                    <input class="input" type="text" name="nome_gruppo" id="nome_gruppo" required>
+                                </div>
+                            </div>
+
+                            <div class="field">
+                                <label class="label" for="descrizione">
+                                    Descrizione
+                                </label>
+                                <div class="control">
+                                    <textarea class="textarea" name="descrizione" id="descrizione"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="field">
+                                <label class="label" for="link_chat">
+                                    Link chat
+                                </label>
+                                <div class="control">
+                                    <input class="input" type="url" name="link_chat" id="link_chat">
+                                </div>
+                            </div>
+
+                            <div class="field">
+                                <label class="label" for="max_partecipanti">
+                                    Numero massimo partecipanti
+                                </label>
+                                <div class="control">
+                                    <input class="input" type="number" name="max_partecipanti" id="max_partecipanti" min="1"
+                                           required>
+                                </div>
+                            </div>
+
+                            <div class="field">
+                                <label class="label" for="id_esame">
+                                    Esame associato
+                                </label>
+                                <div class="control">
+                                    <div class="select is-fullwidth">
+                                        <select name="id_esame" id="id_esame" required>
+                                            <option value="" disabled selected>
+                                                Seleziona esame
+                                            </option>
+                                            {% for esame in esami %}
+                                                <option value="{{ esame.id_esame }}">
+                                                    {{ esame.nome_esame }} - {{ esame.corso }} - Anno {{ esame.anno_corso }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="field">
+                                <label class="label" for="periodo">
+                                    Periodo del gruppo
+                                </label>
+                                <div class="control">
+                                    <div class="select is-fullwidth">
+                                        <select name="periodo" id="periodo" required>
+                                            <option value="7">7 Giorni</option>
+                                            <option value="14">14 Giorni</option>
+                                            <option value="30">30 Giorni</option>
+                                            <option value="60">60 Giorni</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="field is-grouped mt-5">
+                                <div class="control">
+                                    <button class="button is-link" type="submit">
+                                        Crea gruppo
+                                    </button>
+                                </div>
+
+                                <div class="control">
+                                    <a href="{% url 'home' %}" class="button">
+                                        Annulla
+                                    </a>
+                                </div>
+                            </div>
+                        </form>
+
                     </div>
-
-                    {# campo periodo #}
-                    <label for="periodo">Periodo del gruppo</label>
-
-                    <select name="periodo" id="periodo" required>
-                        <option value="7">7 Giorni</option>
-                        <option value="14">14 Giorni</option>
-                        <option value="30">30 Giorni</option>
-                        <option value="60">60 Giorni</option>
-                    </select>
-
-                    <button class="button is-link" type="submit">
-                        Crea gruppo
-                    </button>
-                </form>
+                </div>
             </div>
+
         </div>
     </section>
 {% endblock %}

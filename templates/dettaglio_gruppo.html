@@ -9,14 +9,14 @@
 
             {% if success %}
                 <div class="notification is-success">
-                    <button class="delete"></button>
+                    <button class="delete" aria-label="chiudi"></button>
                     {{ success }}
                 </div>
             {% endif %}
 
             {% if error %}
                 <div class="notification is-danger">
-                    <button class="delete"></button>
+                    <button class="delete" aria-label="chiudi"></button>
                     {{ error }}
                 </div>
             {% endif %}
@@ -40,6 +40,22 @@
                 </div>
 
                 <div class="level-right">
+                    {% if admin and gestisce_gruppo %}
+                        <div class="level-item">
+                            <a href="#modifica-gruppo"
+                               class="button is-link"
+                               id="modifica-gruppo-toggle">
+                                <span class="icon">
+                                    <i class="fa-solid fa-pen-to-square"
+                                       id="modifica-gruppo-toggle-icon"></i>
+                                </span>
+                                <span id="modifica-gruppo-toggle-text">
+                                    Modifica gruppo
+                                </span>
+                            </a>
+                        </div>
+                    {% endif %}
+
                     <div class="level-item">
                         <a href="{% url 'home' %}" class="button">
                         <span class="icon">
@@ -158,6 +174,93 @@
 
                         </div>
                     </div>
+
+
+                    {% if admin and gestisce_gruppo %}
+                        <div class="card mb-5" id="modifica-gruppo" hidden>
+
+                            <header class="card-header">
+                                <p class="card-header-title">
+                                    <span class="icon mr-2">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </span>
+                                    Modifica gruppo
+                                </p>
+                            </header>
+
+                            <div class="card-content">
+                                <form method="POST">
+                                    {% csrf_token %}
+
+                                    <input type="hidden"
+                                           name="azione"
+                                           value="modifica_gruppo">
+
+                                    <div class="field">
+                                        <label class="label" for="nome_gruppo">
+                                            Nome gruppo
+                                        </label>
+                                        <div class="control">
+                                            <input class="input"
+                                                   type="text"
+                                                   name="nome_gruppo"
+                                                   id="nome_gruppo"
+                                                   value="{{ gruppo.nome_gruppo }}"
+                                                   required>
+                                        </div>
+                                    </div>
+
+                                    <div class="field">
+                                        <label class="label" for="descrizione">
+                                            Descrizione
+                                        </label>
+                                        <div class="control">
+                                            <textarea class="textarea"
+                                                      name="descrizione"
+                                                      id="descrizione">{{ gruppo.descrizione }}</textarea>
+                                        </div>
+                                    </div>
+
+                                    <div class="field">
+                                        <label class="label" for="link_chat">
+                                            Link chat
+                                        </label>
+                                        <div class="control">
+                                            <input class="input"
+                                                   type="url"
+                                                   name="link_chat"
+                                                   id="link_chat"
+                                                   value="{{ gruppo.link_chat }}"
+                                                   placeholder="https://...">
+                                        </div>
+                                    </div>
+
+                                    <div class="field">
+                                        <label class="label" for="max_partecipanti">
+                                            Numero massimo partecipanti
+                                        </label>
+                                        <div class="control">
+                                            <input class="input"
+                                                   type="number"
+                                                   name="max_partecipanti"
+                                                   id="max_partecipanti"
+                                                   value="{{ gruppo.max_partecipanti }}"
+                                                   min="1"
+                                                   required>
+                                        </div>
+                                    </div>
+
+                                    <button type="submit"
+                                            class="button is-link">
+                                        <span class="icon">
+                                            <i class="fa-solid fa-floppy-disk"></i>
+                                        </span>
+                                        <span>Salva modifiche</span>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    {% endif %}
 
 
                     <!-- Area riservata -->
@@ -295,6 +398,97 @@
 
                         </div>
 
+                        {% if admin and gestisce_gruppo %}
+                            <div class="card mt-5">
+                                <header class="card-header">
+                                    <p class="card-header-title">
+                                        <span class="icon mr-2">
+                                            <i class="fa-solid fa-user-check"></i>
+                                        </span>
+                                        Richieste di partecipazione
+                                    </p>
+                                </header>
+
+                                <div class="card-content">
+                                    {% for richiesta in richieste_studenti %}
+
+                                        <article class="media mb-5">
+
+                                            <div class="media-left">
+                                                <span class="icon">
+                                                    <i class="fa-solid fa-user"></i>
+                                                </span>
+                                            </div>
+
+                                            <div class="media-content">
+
+                                                <p class="has-text-weight-semibold">
+                                                    {% if richiesta.studente.studente.nome or richiesta.studente.studente.cognome %}
+                                                        {{ richiesta.studente.studente.nome }}
+                                                        {{ richiesta.studente.studente.cognome }}
+                                                    {% else %}
+                                                        {{ richiesta.studente.studente.utente }}
+                                                    {% endif %}
+                                                </p>
+
+                                                <p>
+                                                    {{ richiesta.studente.corso_laurea }}
+                                                    · Anno {{ richiesta.studente.anno_corso }}
+                                                </p>
+
+                                                <div class="buttons mt-3">
+
+                                                    <form method="POST">
+                                                        {% csrf_token %}
+
+                                                        <input type="hidden"
+                                                               name="azione"
+                                                               value="accetta_partecipazione">
+
+                                                        <input type="hidden"
+                                                               name="richiesta_id"
+                                                               value="{{ richiesta.id }}">
+
+                                                        <button type="submit"
+                                                                class="button is-success is-small">
+                                                            Accetta
+                                                        </button>
+                                                    </form>
+
+                                                    <form method="POST">
+                                                        {% csrf_token %}
+
+                                                        <input type="hidden"
+                                                               name="azione"
+                                                               value="rifiuta_partecipazione">
+
+                                                        <input type="hidden"
+                                                               name="richiesta_id"
+                                                               value="{{ richiesta.id }}">
+
+                                                        <button type="submit"
+                                                                class="button is-danger is-small">
+                                                            Rifiuta
+                                                        </button>
+                                                    </form>
+
+                                                </div>
+
+                                            </div>
+
+                                        </article>
+
+                                    {% empty %}
+
+                                        <div class="notification">
+                                            Non ci sono richieste di partecipazione in attesa.
+                                        </div>
+
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+
                     {% else %}
 
                         <article class="message is-warning">
@@ -336,47 +530,32 @@
                                 </span>
 
                                     <strong>
-                                        {% if admin %}
-                                            Partecipanti confermati:
-                                        {% else %}
-                                            Partecipazioni richieste:
-                                        {% endif %}
+                                        Partecipanti:
                                     </strong><br>
 
-                                    {% if admin %}
-                                        {{ posti_occupati }}
-                                    {% else %}
-                                        {{ gruppo.gruppo_utente.count }}
-                                    {% endif %}
+                                    {{ partecipanti_effettivi }}
                                     su
                                     {{ gruppo.max_partecipanti }}
                                 </p>
 
                                 <progress
                                         class="progress is-link"
-                                        {% if admin %}
-                                        value="{{ posti_occupati }}"
-                                        {% else %}
-                                        value="{{ gruppo.gruppo_utente.count }}"
-                                        {% endif %}
+                                        value="{{ partecipanti_effettivi }}"
                                         max="{{ gruppo.max_partecipanti }}">
-                                    {% if admin %}
-                                        {{ posti_occupati }}
-                                    {% else %}
-                                        {{ gruppo.gruppo_utente.count }}
-                                    {% endif %}
+                                    {{ partecipanti_effettivi }}
                                 </progress>
-                                {% if admin %}
-                                    <p>
-                                        <strong>Posti disponibili</strong>
-                                        {{ posti_disponibili }}
-                                    </p>
-                                {% else %}
-                                    <p>
-                                        <strong>Posti massimi</strong>
-                                        {{ gruppo.max_partecipanti }}
-                                    </p>
-                                {% endif %}
+                                <p>
+                                    <strong>Posti disponibili</strong>
+                                    {{ posti_disponibili }}
+                                </p>
+
+                                <a href="{% url 'partecipanti_gruppo' gruppo.id_gruppo %}"
+                                   class="button is-link is-small is-fullwidth mt-3">
+                                    <span class="icon">
+                                        <i class="fa-solid fa-users"></i>
+                                    </span>
+                                    <span>Vedi partecipanti</span>
+                                </a>
 
                                 <hr>
 
@@ -391,14 +570,15 @@
                                 {% for supporto in gruppo.gruppo_tutor.all %}
 
                                     <div class="tags">
-                                    <span class="tag is-primary">
-                                        {% if supporto.tutor.tutor.nome or supporto.tutor.tutor.cognome %}
-                                            {{ supporto.tutor.tutor.nome }}
-                                            {{ supporto.tutor.tutor.cognome }}
-                                        {% else %}
-                                            {{ supporto.tutor.tutor.utente }}
-                                        {% endif %}
-                                    </span>
+                                        <a href="{% url 'profile_utente' supporto.tutor.tutor.utente %}?gruppo={{ gruppo.id_gruppo }}"
+                                           class="tag is-primary">
+                                            {% if supporto.tutor.tutor.nome or supporto.tutor.tutor.cognome %}
+                                                {{ supporto.tutor.tutor.nome }}
+                                                {{ supporto.tutor.tutor.cognome }}
+                                            {% else %}
+                                                {{ supporto.tutor.tutor.utente }}
+                                            {% endif %}
+                                        </a>
                                     </div>
 
                                 {% empty %}
@@ -422,14 +602,15 @@
                                 {% for gestione in gruppo.gruppo_admin.all %}
 
                                     <div class="tags">
-                                    <span class="tag is-link">
-                                        {% if gestione.admin.admin.nome or gestione.admin.admin.cognome %}
-                                            {{ gestione.admin.admin.nome }}
-                                            {{ gestione.admin.admin.cognome }}
-                                        {% else %}
-                                            {{ gestione.admin.admin.utente }}
-                                        {% endif %}
-                                    </span>
+                                        <a href="{% url 'profile_utente' gestione.admin.admin.utente %}?gruppo={{ gruppo.id_gruppo }}"
+                                           class="tag is-link">
+                                            {% if gestione.admin.admin.nome or gestione.admin.admin.cognome %}
+                                                {{ gestione.admin.admin.nome }}
+                                                {{ gestione.admin.admin.cognome }}
+                                            {% else %}
+                                                {{ gestione.admin.admin.utente }}
+                                            {% endif %}
+                                        </a>
                                     </div>
                                 {% endfor %}
 
@@ -621,88 +802,6 @@
                                     </button>
                                 </form>
 
-                                {# Richieste degli studenti #}
-                                <hr>
-
-                                <h3 class="title is-6">
-                                    Richieste di partecipazione
-                                </h3>
-
-                                {% for richiesta in richieste_studenti %}
-
-                                    <article class="media mb-5">
-
-                                        <div class="media-left">
-                                             <span class="icon">
-                                              <i class="fa-solid fa-user"></i>
-                                              </span>
-                                        </div>
-
-                                        <div class="media-content">
-
-                                            <p class="has-text-weight-semibold">
-                                                {% if richiesta.studente.studente.nome or richiesta.studente.studente.cognome %}
-                                                    {{ richiesta.studente.studente.nome }}
-                                                    {{ richiesta.studente.studente.cognome }}
-                                                {% else %}
-                                                    {{ richiesta.studente.studente.utente }}
-                                                {% endif %}
-                                            </p>
-                                            {# richiesta.studente.studente perchè il secondo studente si intende la generalizzazione dell ATTR.STUDENTE ----> UTENTE #}
-                                            <p>
-                                                {{ richiesta.studente.corso_laurea }}
-                                                · Anno {{ richiesta.studente.anno_corso }}
-                                            </p>
-
-                                            <div class="buttons mt-3">
-
-                                                <form method="POST">
-                                                    {% csrf_token %}
-
-                                                    <input type="hidden"
-                                                           name="azione"
-                                                           value="accetta_partecipazione">
-
-                                                    <input type="hidden"
-                                                           name="richiesta_id"
-                                                           value="{{ richiesta.id }}">
-
-                                                    <button type="submit"
-                                                            class="button is-success is-small">
-                                                        Accetta
-                                                    </button>
-                                                </form>
-
-                                                <form method="POST">
-                                                    {% csrf_token %}
-
-                                                    <input type="hidden"
-                                                           name="azione"
-                                                           value="rifiuta_partecipazione">
-
-                                                    <input type="hidden"
-                                                           name="richiesta_id"
-                                                           value="{{ richiesta.id }}">
-
-                                                    <button type="submit"
-                                                            class="button is-danger is-small">
-                                                        Rifiuta
-                                                    </button>
-                                                </form>
-
-                                            </div>
-
-                                        </div>
-
-                                    </article>
-
-                                {% empty %}
-
-                                    <div class="notification">
-                                        Non ci sono richieste di partecipazione in attesa.
-                                    </div>
-
-                                {% endfor %}
                             {% else %}
                                 <div class="notification">
                                     Puoi consultare le informazioni pubbliche del gruppo.
@@ -741,5 +840,58 @@
 
         </div>
     </section>
+
+    {% if admin and gestisce_gruppo %}
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const button = document.getElementById('modifica-gruppo-toggle');
+                const buttonText = document.getElementById('modifica-gruppo-toggle-text');
+                const buttonIcon = document.getElementById('modifica-gruppo-toggle-icon');
+                const formModifica = document.getElementById('modifica-gruppo');
+
+                if (!button || !buttonText || !buttonIcon || !formModifica) {
+                    return;
+                }
+
+                function aggiornaBottoneModifica() {
+                    const modificaAttiva = window.location.hash === '#modifica-gruppo';
+
+                    formModifica.hidden = !modificaAttiva;
+                    button.classList.toggle('is-link', !modificaAttiva);
+                    button.classList.toggle('is-danger', modificaAttiva);
+                    buttonText.textContent = modificaAttiva ? 'Finito' : 'Modifica gruppo';
+                    buttonIcon.classList.toggle('fa-pen-to-square', !modificaAttiva);
+                    buttonIcon.classList.toggle('fa-check', modificaAttiva);
+                }
+
+                button.addEventListener('click', function (event) {
+                    if (window.location.hash === '#modifica-gruppo') {
+                        event.preventDefault();
+                        history.replaceState(
+                            null,
+                            '',
+                            window.location.pathname + window.location.search
+                        );
+                        aggiornaBottoneModifica();
+                        window.scrollTo({
+                            top: 0,
+                            behavior: 'smooth'
+                        });
+                        return;
+                    }
+
+                    event.preventDefault();
+                    history.replaceState(null, '', '#modifica-gruppo');
+                    aggiornaBottoneModifica();
+                    formModifica.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                });
+
+                window.addEventListener('hashchange', aggiornaBottoneModifica);
+                aggiornaBottoneModifica();
+            });
+        </script>
+    {% endif %}
 
 {% endblock %}

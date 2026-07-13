@@ -1,5 +1,113 @@
 {% extends "index.html" %}
+
+{% block title %}Notifiche | StudyMatch{% endblock %}
+
 {% block content %}
+    <section class="section">
+        <div class="container">
+            <h1 class="title is-3">Notifiche</h1>
 
+            {% if success %}
+                <div class="notification is-success">
+                    {{ success }}
+                </div>
+            {% endif %}
 
+            {% if error %}
+                <div class="notification is-danger">
+                    {{ error }}
+                </div>
+            {% endif %}
+
+            {% if gruppi_gestiti %}
+                <div class="box mb-5">
+                    <h2 class="title is-5">Invia notifica</h2>
+
+                    <form method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="azione" value="invia">
+
+                        <div class="field">
+                            <label class="label">Gruppo</label>
+                            <div class="control">
+                                <div class="select is-fullwidth">
+                                    <select name="id_gruppo" required>
+                                        {% for gestione in gruppi_gestiti %}
+                                            <option value="{{ gestione.id_gruppo.id_gruppo }}">
+                                                {{ gestione.id_gruppo.nome_gruppo }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="label">Messaggio</label>
+                            <div class="control">
+                                <textarea class="textarea" name="testo" required></textarea>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="button is-link">
+                            Invia
+                        </button>
+                    </form>
+                </div>
+            {% endif %}
+
+            <div class="level">
+                <div class="level-left">
+                    <h2 class="title is-5">Ricevute</h2>
+                </div>
+
+                <div class="level-right">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="azione" value="letta">
+                        <button type="submit" class="button is-small">
+                            Segna come lette
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            {% for notifica in notifiche %}
+                <article class="
+                    message
+                    {% if notifica.letta %}is-light{% else %}is-info{% endif %}
+                ">
+                    <div class="message-header">
+                        <p>
+                            {{ notifica.mittente.admin.nome }}
+                            {{ notifica.mittente.admin.cognome }}
+                        </p>
+                        <span>
+                            {{ notifica.data_invio|date:"d/m/Y H:i" }}
+                        </span>
+                    </div>
+
+                    <div class="message-body">
+                        <p>{{ notifica.testo }}</p>
+
+                        {% if notifica.letta %}
+                            <span class="tag mt-3">Letta</span>
+                        {% else %}
+                            <span class="tag is-warning mt-3">Nuova</span>
+                        {% endif %}
+                    </div>
+                </article>
+            {% empty %}
+                <div class="notification is-light has-text-centered">
+                    Non sono presenti nuove comunicazioni.
+                </div>
+            {% endfor %}
+
+            <div class="mt-5">
+                <a href="{% url 'home' %}" class="button is-light">
+                    Torna alla home
+                </a>
+            </div>
+        </div>
+    </section>
 {% endblock %}

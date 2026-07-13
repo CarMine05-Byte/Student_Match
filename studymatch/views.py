@@ -3,74 +3,71 @@ from django.shortcuts import render
 from .models import *
 from .utils import hash_password, verify_password, get_corsi_laurea
 
-
 def index(request):
-    return render(request, 'index.html')
+    return render(request, "index.html")
 
 
+# Gestisce autenticazione e inizializzazione della sessione utente.
 def login(request):
     if request.method == "POST":
         ident = request.POST.get("id")
         pwd = request.POST.get("pass")
-        user_valid = Utente.objects.filter(models.Q(utente=ident) | models.Q(email=ident)).first()
-        # select * from Student where utente ="$user"
-        if user_valid and verify_password(pwd, user_valid.password):  # verifichiamo la password
-            print(f"Utente Verificato : {user_valid.utente}")
+        user_valid = Utente.objects.filter(
+            models.Q(utente=ident) | models.Q(email=ident)
+        ).first()
 
-            # Session
-            request.session['user'] = user_valid.utente
-            request.session['ruolo'] = user_valid.ruolo
+        if user_valid and verify_password(pwd, user_valid.password):
+            request.session["user"] = user_valid.utente
+            request.session["ruolo"] = user_valid.ruolo
 
             return home(request, {"success": "Autenticazione avvenuta con successo"})
-        else:
-            request.session.flush()
-            return render(request, 'login.html', {'error': 'Credenziali non valide', 'user': ident})
-    return render(request, 'login.html')
+
+        request.session.flush()
+        return render(request, "login.html", {"error": "Credenziali non valide", "user": ident})
+    return render(request, "login.html")
 
 
+# Registra l'utente e crea il profilo collegato al ruolo scelto.
 def registration(request):
-    print("Pagina di registrazione ottenuta")
     corsi = get_corsi_laurea()
-    registration_context = {'corsi': corsi}
+    registration_context = {"corsi": corsi}
 
-    # Estrazione dei dati
     if request.method == "POST":
-        user = request.POST.get('user')
-        nome = (request.POST.get('nome') or '').strip()
-        cognome = (request.POST.get('cognome') or '').strip()
-        email = (request.POST.get('email') or '').strip()
-        pwd = request.POST.get('pass')
-        ruolo = request.POST.get('ruolo')
+        user = request.POST.get("user")
+        nome = (request.POST.get("nome") or "").strip()
+        cognome = (request.POST.get("cognome") or "").strip()
+        email = (request.POST.get("email") or "").strip()
+        pwd = request.POST.get("pass")
+        ruolo = request.POST.get("ruolo")
 
-        # Controllo Duplicati
+        # Controlli preliminari su username, email e ruolo.
         if Utente.objects.filter(utente=user).exists():
-            return render(request, 'registration.html', {**registration_context, 'error': 'Username già registrato.'})
+            return render(request, "registration.html", {
+                **registration_context,
+                "error": "Username già registrato.",
+            })
 
         if email and Utente.objects.filter(email__exact=email).exists():
-            return render(request, 'registration.html', {**registration_context, 'error': 'Email già registrata.'})
+            return render(request, "registration.html", {
+                **registration_context,
+                "error": "Email già registrata.",
+            })
 
-        # Controllo ruolo
         if ruolo not in ["studente", "tutor", "admin"]:
-            return render(request, 'registration.html', {**registration_context, 'error': 'Ruolo non scelto'})
+            return render(request, "registration.html", {
+                **registration_context,
+                "error": "Ruolo non scelto",
+            })
 
-        # Campi Studente
-
-        anno_corso = request.POST.get('anno_corso')
-        corso_laurea_stu = request.POST.get('corso_laurea_stu')
-
-        # Campi Tutor
-
-        dipartimento = request.POST.get('dipartimento')
-        area_competenza = request.POST.get('area_competenza')
-        corso_laurea_tut = request.POST.get('corso_laurea_tut')
-
-        # Campi Admin
-
+        anno_corso = request.POST.get("anno_corso")
+        corso_laurea_stu = request.POST.get("corso_laurea_stu")
+        dipartimento = request.POST.get("dipartimento")
+        area_competenza = request.POST.get("area_competenza")
+        corso_laurea_tut = request.POST.get("corso_laurea_tut")
         codice_invito = request.POST.get("codice_invito")
 
-        new_user = None  # definiamo una variabile Null
-        # Salva l'utente
-
+        # Creazione dell'utente base e del profilo specifico.
+        new_user = None
         try:
             new_user = Utente.objects.create(
                 utente=user,
@@ -98,41 +95,43 @@ def registration(request):
                     admin=new_user,
                     livello=1,
                     data_nomina=timezone.now().date()
-
                 )
 
-        except Exception as e:  # Errore di default
-            print(f"Errore nella creazione oggetto utente-studente: {e}")
-
+        except Exception:
             if ruolo == "admin" and codice_invito != "ADMIN_2026":
-                return render(request, 'registration.html',
-                              {**registration_context, 'error': 'Codice invito non valido'})
+                return render(request, "registration.html", {
+                    **registration_context,
+                    "error": "Codice invito non valido",
+                })
 
             if new_user is not None:
                 new_user.delete()
                 logout(request)
-            return render(request, 'registration.html', {**registration_context, 'error': 'Errore Creazione Profilo'})
+            return render(request, "registration.html", {
+                **registration_context,
+                "error": "Errore Creazione Profilo",
+            })
         ruoli_utente = get_ruoli_utente(new_user)
-        print(f"Studente {user} registrato con successo!")
-        request.session['user'] = new_user.utente
-        request.session['ruolo'] = new_user.ruolo
-        return home(request,
-                    {"success": "Registrazione completata con successo", "ruoli ": ruoli_utente, "corsi": corsi})
+        request.session["user"] = new_user.utente
+        request.session["ruolo"] = new_user.ruolo
+        return home(request, {
+            "success": "Registrazione completata con successo",
+            "ruoli ": ruoli_utente,
+            "corsi": corsi,
+        })
 
-    return render(request, 'registration.html', registration_context)
+    return render(request, "registration.html", registration_context)
 
 
+# Costruisce la dashboard in base al ruolo salvato in sessione.
 def home(request, extra_content=None):
-    print("Abbiamo ottenuto la pagina home")
-
-    user = request.session.get('user')
-    ruolo = request.session.get('ruolo')
+    user = request.session.get("user")
+    ruolo = request.session.get("ruolo")
 
     if not user:
         return render(request, "login.html", {"error": "Sessione Scaduta"})
-    # Estraction of Datas
+
     user_valid = Utente.objects.filter(utente=user).first()
-    # SELECT * FROM UTENTE WHERE utente = $user;
     if not user_valid:
         request.session.flush()
         return render(request, "login.html", {"error": "Utente non trovato"})
@@ -141,6 +140,7 @@ def home(request, extra_content=None):
     esami = Esame.objects.all()
 
     if ruolo == "studente":
+        # Gruppi compatibili con corso e anno dello studente, esclusi quelli già richiesti.
         studente = Studente.objects.filter(studente=user_valid).first()
         if not studente:
             return render(request, "login.html", {"error": "Studente non trovato"})
@@ -148,8 +148,11 @@ def home(request, extra_content=None):
         esami_stud = esami.filter(anno_corso=studente.anno_corso, corso=studente.corso_laurea)
         partecipa_stud = Partecipazione.objects.filter(studente=studente).distinct()
 
-        gruppi_stud = gruppo.filter(gruppo_esame__id_esame__in=esami_stud).exclude(
-            id_gruppo__in=partecipa_stud.values('id_gruppo')).distinct()
+        gruppi_stud = gruppo.filter(
+            gruppo_esame__id_esame__in=esami_stud
+        ).exclude(
+            id_gruppo__in=partecipa_stud.values("id_gruppo")
+        ).distinct()
         context = {
             "utente": user_valid,
             "studente": studente,
@@ -162,7 +165,9 @@ def home(request, extra_content=None):
             context.update(extra_content)
 
         return render(request, "home.html", context)
+
     if ruolo == "tutor":
+        # Gruppi seguiti dal tutor e gruppi ancora disponibili.
         tutor = Tutor.objects.filter(tutor=user_valid).first()
         supporto_tut = Supporto.objects.filter(tutor=tutor)
         gruppi_tut = gruppo.filter(id_gruppo__in=supporto_tut.values("id_gruppo")).distinct()
@@ -179,18 +184,17 @@ def home(request, extra_content=None):
             "grup_disp_tut": gruppi_disp_tut,
             "ruolo": ruolo
         }
+
         if extra_content:
             context.update(extra_content)
 
         return render(request, "home.html", context)
+
     if ruolo == "admin":
+        # Gruppi gestiti dall'admin e gruppi gestiti da altri admin.
         admin = Admin.objects.filter(admin=user_valid).first()
         gruppi_admin = gruppo.filter(gruppo_admin__admin=admin).distinct()
-        gruppi_gia_gestiti = Gestione.objects.values_list("id_gruppo", flat=True)
-
-        gruppi_disp = Gruppo.objects.exclude(
-            id_gruppo__in=gruppi_gia_gestiti
-        ).distinct()
+        gruppi_disp = gruppo.exclude(gruppo_admin__admin=admin).distinct()
 
         context = {
             "utente": user_valid,
@@ -204,14 +208,14 @@ def home(request, extra_content=None):
             context.update(extra_content)
 
         return render(request, "home.html", context)
-    return render(request, 'login.html', {"error": "Ruolo non valido"})
+
+    return render(request, "login.html", {"error": "Ruolo non valido"})
 
 
+# Mostra i dati del profilo collegato al ruolo corrente.
 def profile(request):
-    print("Pagina profilo ottenuta!")
-
-    user = request.session.get('user')
-    ruolo = request.session.get('ruolo')
+    user = request.session.get("user")
+    ruolo = request.session.get("ruolo")
 
     if not user:
         return render(request, "login.html", {"error": "Errore sessione login scaduta"})
@@ -244,12 +248,11 @@ def profile(request):
     else:
         return render(request, "login.html", {"error": "Ruolo non trovato"})
 
-    return render(request, 'profile.html', context)
+    return render(request, "profile.html", context)
 
 
+# Crea un gruppo e collega automaticamente admin o tutor al nuovo gruppo.
 def crea_gruppo(request):
-    print("Pagina creazione gruppo ottenuta")
-
     user = request.session.get("user")
     ruolo = request.session.get("ruolo")
 
@@ -259,7 +262,9 @@ def crea_gruppo(request):
     utente = Utente.objects.filter(utente=user).first()
 
     if ruolo not in ["admin", "tutor"]:
-        return home(request, {"error": "Solo gli amministratori e i tutor possono creare e gestire il gruppo!"})
+        return home(request, {
+            "error": "Solo gli amministratori e i tutor possono creare e gestire il gruppo!",
+        })
     if not utente:
         request.session.flush()
         return render(request, "login.html", {"error": "Utente non trovato!"})
@@ -275,13 +280,18 @@ def crea_gruppo(request):
         periodo = int(request.POST.get("periodo")) or 0
 
         if not nome_gruppo or not max_partecipanti or not id_esame:
-            return render(request, "crea_gruppo.html", {"error": "Compila tutti i campi obbligatori", "esami": esami})
+            return render(request, "crea_gruppo.html", {
+                "error": "Compila tutti i campi obbligatori",
+                "esami": esami,
+            })
 
         esame_selezionato = Esame.objects.filter(id_esame=id_esame).first()
         if not esame_selezionato:
-            return render(request, "crea_gruppo.html", {"error": "Esame non valido!", "esami": esami})
+            return render(request, "crea_gruppo.html", {
+                "error": "Esame non valido!",
+                "esami": esami,
+            })
 
-        # Esami
         gruppo = Gruppo.objects.create(
             nome_gruppo=nome_gruppo,
             descrizione=descrizione,
@@ -316,6 +326,7 @@ def crea_gruppo(request):
     return render(request, "crea_gruppo.html", {"esami": esami})
 
 
+# Mostra e gestisce le azioni disponibili nel dettaglio di un gruppo.
 def dettaglio_gruppo(request, id_gruppo):
     user = request.session.get("user")
     ruolo = request.session.get("ruolo")
@@ -325,8 +336,7 @@ def dettaglio_gruppo(request, id_gruppo):
     utente = Utente.objects.filter(utente=user).first()
     if not utente:
         request.session.flush()
-        return render(request, "login.html", {"error": "Utente non trovato"
-                                              })
+        return render(request, "login.html", {"error": "Utente non trovato"})
 
     gruppo = Gruppo.objects.filter(id_gruppo=id_gruppo).first()
     if not gruppo:
@@ -340,17 +350,25 @@ def dettaglio_gruppo(request, id_gruppo):
         "gruppo": gruppo,
         "assegnazioni": assegnazioni
     }
-    # Ruolo Studente
     if ruolo == "studente":
+        # Lo studente può richiedere accesso solo ai gruppi compatibili.
         studente = Studente.objects.filter(studente=utente).first()
 
-        partecipazione_utente = Partecipazione.objects.filter(studente=studente,
-                                                              id_gruppo=gruppo).first() if studente else None
-        gruppo_compatibile = Assegnazione.objects.filter(
-            id_gruppo=gruppo,
-            id_esame__corso=studente.corso_laurea,
-            id_esame__anno_corso=studente.anno_corso
-        ).exists() if studente else False
+        partecipazione_utente = (
+            Partecipazione.objects.filter(
+                studente=studente,
+                id_gruppo=gruppo,
+            ).first()
+            if studente else None
+        )
+        gruppo_compatibile = (
+            Assegnazione.objects.filter(
+                id_gruppo=gruppo,
+                id_esame__corso=studente.corso_laurea,
+                id_esame__anno_corso=studente.anno_corso,
+            ).exists()
+            if studente else False
+        )
 
         context["studente"] = studente
         context["partecipazione_utente"] = partecipazione_utente
@@ -364,16 +382,14 @@ def dettaglio_gruppo(request, id_gruppo):
                 gruppo_compatibile,
                 context
             )
-    # Ruolo Tutor
     elif ruolo == "tutor":
-        tutor = Tutor.objects.filter(
-            tutor=utente
-        ).first()
+        # Il tutor può entrare nel gruppo e caricare materiali dopo l'ingresso.
+        tutor = Tutor.objects.filter(tutor=utente).first()
 
-        supporto_utente = Supporto.objects.filter(
-            tutor=tutor,
-            id_gruppo=gruppo
-        ).first() if tutor else None
+        supporto_utente = (
+            Supporto.objects.filter(tutor=tutor, id_gruppo=gruppo).first()
+            if tutor else None
+        )
 
         context["tutor"] = tutor
         context["supporto_utente"] = supporto_utente
@@ -386,22 +402,22 @@ def dettaglio_gruppo(request, id_gruppo):
                 gruppo,
                 context
             )
-    # Ruolo Admin
     elif ruolo == "admin":
-        admin = Admin.objects.filter(
-            admin=utente
-        ).first()
+        # L'admin può prendere in gestione il gruppo o amministrarlo se già autorizzato.
+        admin = Admin.objects.filter(admin=utente).first()
 
-        gestisce_gruppo = Gestione.objects.filter(
-            admin=admin, id_gruppo=gruppo).exists() if admin else False
+        gestisce_gruppo = (
+            Gestione.objects.filter(admin=admin, id_gruppo=gruppo).exists()
+            if admin else False
+        )
 
         context["admin"] = admin
         context["gestisce_gruppo"] = gestisce_gruppo
 
-        # Parte di codice per accettare la richiesta da parte di utenti
         if request.method == "POST":
             gestisci_post_admin(
                 request,
+                admin,
                 gestisce_gruppo,
                 gruppo,
                 context
@@ -411,7 +427,10 @@ def dettaglio_gruppo(request, id_gruppo):
             stato=False
         )
 
-        partecipazioni = Partecipazione.objects.filter(id_gruppo=gruppo, stato=True)
+        partecipazioni = Partecipazione.objects.filter(
+            id_gruppo=gruppo,
+            stato=True,
+        )
         supporti = Supporto.objects.filter(id_gruppo=gruppo)
 
         posti_occupati = Partecipazione.objects.filter(
@@ -429,6 +448,7 @@ def dettaglio_gruppo(request, id_gruppo):
     return render(request, "dettaglio_gruppo.html", context)
 
 
+# Permette agli admin di creare nuovi esami associabili ai gruppi.
 def esame(request):
     user = request.session.get("user")
     ruolo = request.session.get("ruolo")
@@ -449,7 +469,10 @@ def esame(request):
         cfu = request.POST.get("cfu")
 
         if not nome_esame or not corso or not anno_corso or not semestre or not cfu:
-            return render(request, "crea_esame.html", {"corsi": corsi, "error": "Compila tutti i campi."})
+            return render(request, "crea_esame.html", {
+                "corsi": corsi,
+                "error": "Compila tutti i campi.",
+            })
 
         esame_esistente = Esame.objects.filter(
             nome_esame=nome_esame,
@@ -460,7 +483,7 @@ def esame(request):
         if esame_esistente:
             return render(request, "crea_esame.html", {
                 "corsi": corsi,
-                "error": "Questo esame è già presente."
+                "error": "Questo esame è già presente.",
             })
         Esame.objects.create(
             nome_esame=nome_esame,
@@ -470,14 +493,44 @@ def esame(request):
             cfu=cfu
         )
 
-        return render(request, "crea_esame.html", {"corsi": corsi, "success": "Esame creato correttamente."})
-    return render(request, 'crea_esame.html', {"corsi": corsi})
+        return render(request, "crea_esame.html", {
+            "corsi": corsi,
+            "success": "Esame creato correttamente.",
+        })
+    return render(request, "crea_esame.html", {"corsi": corsi})
 
 
+# Gestisce lettura e invio delle notifiche tra admin, studenti e gruppi.
 def notifica(request):
-    return render(request, 'notifiche.html')
+    user = request.session.get("user")
+    if not user:
+        return render(request, "login.html", {"error": "Sessione Scaduta"})
+
+    utente = Utente.objects.filter(utente=user).first()
+    if not utente:
+        request.session.flush()
+        return render(request, "login.html", {"error": "Utente non trovato"})
+
+    context = {
+        "notifiche": notifica_ric(utente),
+        "gruppi_gestiti": gruppi_gestiti_admin(utente),
+    }
+
+    if request.method == "POST":
+        azione = request.POST.get("azione")
+
+        if azione == "invia":
+            context.update(notifica_inv(request, utente))
+        elif azione == "letta":
+            lette = notifica_lette(utente)
+            context["success"] = f"{lette} notifiche segnate come lette."
+
+        context["notifiche"] = notifica_ric(utente)
+
+    return render(request, "notifiche.html", context)
 
 
+# Restituisce i ruoli effettivamente collegati a un utente.
 def get_ruoli_utente(utente):
     ruoli = []
 
@@ -495,7 +548,7 @@ def logout(request):
     return render(request, "login.html")
 
 
-####FUNZIONI AUSILIARI PER FUN DETTAGLIO_GRUPPO
+# Funzioni ausiliarie per materiali e partecipazione ai gruppi.
 def carica_materiale_gruppo(request, gruppo, context):
     materiale_file = request.FILES.get("file_materiale")
 
@@ -512,12 +565,12 @@ def carica_materiale_gruppo(request, gruppo, context):
     materiale = Materiale.objects.create(
         nome_file=nome_file,
         tipo="file",
-        file=materiale_file
+        file=materiale_file,
     )
 
     Condivisione.objects.create(
         file=materiale,
-        id_gruppo=gruppo
+        id_gruppo=gruppo,
     )
 
     context["success"] = "File caricato correttamente."
@@ -553,6 +606,7 @@ def richiedi_partecipazione_gruppo(studente, gruppo, gruppo_compatibile, context
     context["success"] = "Richiesta di partecipazione inviata."
 
 
+# Funzioni ausiliarie per tutor e admin nel dettaglio gruppo.
 def entra_come_tutor_gruppo(tutor, gruppo, context):
     if not tutor:
         context["error"] = "Profilo tutor non trovato."
@@ -613,6 +667,28 @@ def rifiuta_partecipazione_gruppo(richiesta_id, gruppo, context):
         context["error"] = "Richiesta di partecipazione non trovata."
 
 
+def entra_come_admin_gruppo(admin, gruppo, context):
+    if not admin:
+        context["error"] = "Profilo admin non trovato."
+        return
+
+    gestione = Gestione.objects.filter(
+        admin=admin,
+        id_gruppo=gruppo
+    ).first()
+
+    if gestione:
+        context["error"] = "Gestisci già questo gruppo."
+        return
+
+    Gestione.objects.create(
+        admin=admin,
+        id_gruppo=gruppo
+    )
+    context["gestisce_gruppo"] = True
+    context["success"] = "Ora gestisci questo gruppo."
+
+
 def modifica_gruppo(request, gruppo, context):
     nome_gruppo = (request.POST.get("nome_gruppo") or "").strip()
     descrizione = (request.POST.get("descrizione") or "").strip()
@@ -653,6 +729,7 @@ def modifica_link_chat_gruppo(request, gruppo, context):
     context["success"] = "Link chat aggiornato correttamente."
 
 
+# Dispatcher delle azioni POST per ruolo nella pagina dettaglio gruppo.
 def gestisci_post_studente(request, studente, gruppo, gruppo_compatibile, context):
     azione = request.POST.get("azione")
 
@@ -677,9 +754,13 @@ def gestisci_post_tutor(request, tutor, supporto_utente, gruppo, context):
             context["error"] = "Devi supportare il gruppo per caricare materiali."
 
 
-def gestisci_post_admin(request, gestisce_gruppo, gruppo, context):
+def gestisci_post_admin(request, admin, gestisce_gruppo, gruppo, context):
     azione = request.POST.get("azione")
     richiesta_id = request.POST.get("richiesta_id")
+
+    if azione == "entra_gestione":
+        entra_come_admin_gruppo(admin, gruppo, context)
+        return
 
     if not gestisce_gruppo:
         context["error"] = "Non sei autorizzato a gestire le richieste di questo gruppo"
@@ -691,5 +772,96 @@ def gestisci_post_admin(request, gestisce_gruppo, gruppo, context):
         carica_materiale_gruppo(request, gruppo, context)
     elif azione == "modifica_link_chat":
         modifica_link_chat_gruppo(request, gruppo, context)
+    elif azione == "invia_notifica":
+        invia_notifica_gruppo(request, admin, gruppo, context)
     elif azione == "modifica_gruppo":
         modifica_gruppo(request, gruppo, context)
+
+
+# Funzioni ausiliarie per invio, ricezione e stato lettura delle notifiche.
+def gruppi_gestiti_admin(utente):
+    admin = Admin.objects.filter(admin=utente).first()
+    if not admin:
+        return Gestione.objects.none()
+
+    return Gestione.objects.filter(admin=admin).select_related("id_gruppo")
+
+
+def notifica_ric(utente):
+    return Invio.objects.filter(
+        destinatario=utente
+    ).select_related(
+        "mittente",
+        "mittente__admin",
+    ).order_by("-data_invio")
+
+
+def notifica_lette(utente):
+    return Invio.objects.filter(destinatario=utente, letta=False).update(letta=True)
+
+
+def notifica_inv(request, utente):
+    admin = Admin.objects.filter(admin=utente).first()
+    if not admin:
+        return {"error": "Solo un admin può inviare notifiche."}
+
+    id_gruppo = request.POST.get("id_gruppo")
+    testo = (request.POST.get("testo") or "").strip()
+
+    if not id_gruppo:
+        return {"error": "Seleziona un gruppo."}
+
+    if not testo:
+        return {"error": "Il testo della notifica non può essere vuoto."}
+
+    gruppo = Gruppo.objects.filter(id_gruppo=id_gruppo).first()
+    if not gruppo:
+        return {"error": "Gruppo non trovato."}
+
+    if not Gestione.objects.filter(admin=admin, id_gruppo=gruppo).exists():
+        return {"error": "Non sei autorizzato a gestire questo gruppo."}
+
+    return crea_notifiche_gruppo(admin, gruppo, testo)
+
+
+def invia_notifica_gruppo(request, admin, gruppo, context):
+    testo = (request.POST.get("testo_notifica") or "").strip()
+    context.update(crea_notifiche_gruppo(admin, gruppo, testo))
+
+
+def crea_notifiche_gruppo(admin, gruppo, testo):
+    if not admin:
+        return {"error": "Profilo admin non trovato."}
+
+    if not testo:
+        return {"error": "Il testo della notifica non può essere vuoto."}
+
+    studenti = Partecipazione.objects.filter(
+        id_gruppo=gruppo,
+        stato=True,
+    ).values_list("studente__studente_id", flat=True)
+
+    tutor = Supporto.objects.filter(
+        id_gruppo=gruppo
+    ).values_list("tutor__tutor_id", flat=True)
+
+    altri_admin = Gestione.objects.filter(
+        id_gruppo=gruppo
+    ).exclude(
+        admin=admin
+    ).values_list("admin__admin_id", flat=True)
+
+    destinatari = set(studenti) | set(tutor) | set(altri_admin)
+    destinatari.discard(admin.admin_id)
+
+    if not destinatari:
+        return {"error": "Non sono presenti destinatari."}
+
+    for destinatario_id in destinatari:
+        Invio.objects.create(
+            mittente=admin,
+            destinatario_id=destinatario_id,
+            testo=testo,
+        )
+
+    return {"success": f"Notifica inviata a {len(destinatari)} destinatari."}

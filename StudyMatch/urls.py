@@ -30,7 +30,7 @@ urlpatterns = [
     path('gruppo/<int:id_gruppo>', views.dettaglio_gruppo, name='dettaglio_gruppo'),
     path('crea_gruppo', views.crea_gruppo, name='crea_gruppo'),
     path('crea_esame', views.esame, name='esame'),
-    path('notifiche/', views.notifica, name='notifiche'),
+    path('notifica/', views.notifica, name='notifica'),
     path('logout/', views.logout, name='logout')
 
 ]

@@ -431,13 +431,6 @@
                                         {% endif %}
                                     </span>
                                     </div>
-
-                                {% empty %}
-
-                                    <p>
-                                        Nessun amministratore associato.
-                                    </p>
-
                                 {% endfor %}
 
                             </div>
@@ -601,6 +594,33 @@
                                     </button>
                                 </form>
 
+                                <form method="POST" class="mb-4">
+                                    {% csrf_token %}
+
+                                    <input type="hidden"
+                                           name="azione"
+                                           value="invia_notifica">
+
+                                    <div class="field">
+                                        <label class="label">Notifica al gruppo</label>
+                                        <div class="control">
+                                            <textarea class="textarea"
+                                                      name="testo_notifica"
+                                                      placeholder="Scrivi un messaggio per gli utenti del gruppo"
+                                                      required></textarea>
+                                        </div>
+                                    </div>
+
+                                    <button type="submit"
+                                            class="button is-info is-fullwidth">
+                                    <span class="icon">
+                                        <i class="fa-solid fa-paper-plane"></i>
+                                    </span>
+
+                                        <span>Invia notifica</span>
+                                    </button>
+                                </form>
+
                                 {# Richieste degli studenti #}
                                 <hr>
 
@@ -687,6 +707,23 @@
                                 <div class="notification">
                                     Puoi consultare le informazioni pubbliche del gruppo.
                                 </div>
+
+                                <form method="POST" class="mb-4">
+                                    {% csrf_token %}
+
+                                    <input type="hidden"
+                                           name="azione"
+                                           value="entra_gestione">
+
+                                    <button type="submit"
+                                            class="button is-link is-fullwidth">
+                                        <span class="icon">
+                                            <i class="fa-solid fa-user-shield"></i>
+                                        </span>
+
+                                        <span>Prendi in gestione</span>
+                                    </button>
+                                </form>
 
                                 {% for assegnazione in assegnazioni %}
                                     <p>Scadenza: {{ assegnazione.periodo|date:"d/m/Y H:i" }}</p>

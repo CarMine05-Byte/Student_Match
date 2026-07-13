@@ -1,6 +1,8 @@
+from datetime import timedelta
+
 from django.db import models
 from django.utils import timezone
-from datetime import timedelta
+
 
 class Utente(models.Model):
     utente = models.CharField(max_length=50, primary_key=True)
@@ -116,3 +118,11 @@ class Condivisione(models.Model):
 
     class Meta:
         unique_together = ('file', 'id_gruppo')
+
+
+class Invio(models.Model):
+    mittente = models.ForeignKey(Admin, on_delete=models.CASCADE, related_name="invii_effettuati")
+    destinatario = models.ForeignKey(Utente, on_delete=models.CASCADE, related_name="invii_ricevuti")
+    testo = models.TextField()
+    data_invio = models.DateTimeField(auto_now_add=True)
+    letta = models.BooleanField(default=False)

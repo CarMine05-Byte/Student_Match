@@ -28,8 +28,8 @@ Before starting, make sure you have the following installed:
 ### 1. Clone the repository
 
 ```bash
-git clone <REPOSITORY-URL>
-cd <REPOSITORY-NAME>
+git clone <https://github.com/CarMine05-Byte/Student_Match.git>
+cd <Student_Match>
 ```
 
 ### 2. Create a virtual environment

@@ -8,7 +8,9 @@
 ![Bulma](https://img.shields.io/badge/Bulma-CSS-00D1B2?logo=bulma&logoColor=white)
 
 **Information system for managing university study groups**
+
 </div>
+
 StudyMatch is a Django web application for managing university study groups.  
 It connects students, tutors and administrators through role-based features.  
 The platform manages groups, exams, participation requests, materials and notifications.  
@@ -21,18 +23,21 @@ Data consistency is enforced through Django constraints and custom SQLite trigge
 ### Requirements
 
 Before starting, make sure you have the following installed:
-- Python 3;
-- `pip`;
-- Git.
+
+- Python 3
+- `pip`
+- Git
+- SQLite command-line tools
 
 ### 1. Clone the repository
 
 ```bash
-git clone <https://github.com/CarMine05-Byte/Student_Match.git>
-cd <Student_Match>
+git clone https://github.com/CarMine05-Byte/Student_Match.git
+cd Student_Match
 ```
 
 ### 2. Create a virtual environment
+
 #### Linux and macOS
 
 ```bash
@@ -60,20 +65,17 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 4. Apply the migrations
+### 4. Import the SQL dump
+
+The repository includes an SQL dump containing the database structure and initial data.
+
+Import the dump into a new or empty SQLite database:
 
 ```bash
-python manage.py migrate
+sqlite3 db.sqlite3 ".read studymatch_dump.sql"
 ```
 
-The migrations create the SQLite database tables and install the triggers defined by the project.
-
-The following commands are required only after making changes to the models:
-
-```bash
-python manage.py makemigrations
-python manage.py migrate
-```
+Do not run the migrations before importing the dump if it already contains the complete database schema.
 
 ### 5. Start the development server
 
@@ -149,19 +151,22 @@ Administrators can:
 
 The application uses SQLite as its database, managed through the Django ORM.
 
-### UTENTE Specialization
+### User Roles in the Database
 
-`UTENTE` represents the general entity, while `STUDENTE`, `TUTOR` and `ADMIN` represent its specializations.
+`UTENTE` stores the common data shared by all accounts, while `STUDENTE`, `TUTOR` and `ADMIN` store the information specific to each role.
 
-The primary key of `UTENTE` is included in the child tables as a unique reference.
+The primary key of `UTENTE` is included in the related role table as a unique reference.
 
 ---
 
 ## Project Verification
+
 To check the general Django configuration, run:
+
 ```bash
 python manage.py check
 ```
+
 If automated tests are available in the repository, run:
 
 ```bash

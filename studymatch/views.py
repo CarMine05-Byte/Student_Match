@@ -376,6 +376,14 @@ def dettaglio_gruppo(request, id_gruppo):
             ).exists()
             if studente else False
         )
+        #Controllo di tentativo non autorizzato dell'utente di partecipare a un gruppo.
+        if not partecipazione_utente and not gruppo_compatibile:
+            return home(request, {
+                "error": (
+                    "Non puoi accedere a questo gruppo: non partecipi "
+                    "e non puoi richiedere la partecipazione."
+                )
+            })
 
         context["studente"] = studente
         context["partecipazione_utente"] = partecipazione_utente

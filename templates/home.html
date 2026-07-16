@@ -4,6 +4,20 @@
 {% block content %}
     <section class="section">
         <div class="container">
+            {% if success %}
+                <div class="notification is-success">
+                    <button class="delete" aria-label="chiudi"></button>
+                    {{ success }}
+                </div>
+            {% endif %}
+
+            {% if error %}
+                <div class="notification is-danger">
+                    <button class="delete" aria-label="chiudi"></button>
+                    {{ error }}
+                </div>
+            {% endif %}
+
             <div class="box mb-4">
                 <div class="columns is-vcentered is-variable is-2">
                     <div class="column">
@@ -65,7 +79,7 @@
                 {% if studente %}
                     <!-- Gruppi Disponibili -->
                     <div class="column is-two-thirds">
-                        <h2 class="title is-4">Gruppi Disponibili</h2>
+                        <h2 class="title is-4 has-text-white">Gruppi Disponibili</h2>
                         {% for gruppo in grup_stud %}
                             <div class="box">
                                 <h3 class="title is-5">{{ gruppo.nome_gruppo }}</h3>

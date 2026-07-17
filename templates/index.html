@@ -108,13 +108,17 @@
 {# Script per chiudere le notification con bottone delete. #}
 <script>
     document.addEventListener('click', function (event) {
-        const deleteButton = event.target.closest('.notification .delete');
+        const deleteButton = event.target.closest('.notification .delete, .message .delete');
 
         if (!deleteButton) {
             return;
         }
 
-        deleteButton.closest('.notification').remove();
+        if (deleteButton.closest('form')) {
+            return;
+        }
+
+        deleteButton.closest('.notification, .message').remove();
     });
 </script>
 </body>

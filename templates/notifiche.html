@@ -5,11 +5,19 @@
 {% block content %}
     <section class="section">
         <div class="container">
-            <h1 class="title is-3">Notifiche</h1>
+            <h1 class="title is-3 has-text-light">
+                {% if gruppo %}
+                    Notifiche - {{ gruppo.nome_gruppo }}
+                {% else %}
+                    Notifiche
+                {% endif %}
+            </h1>
 
             {% if success %}
                 <div class="notification is-success">
-                    {{ success }}
+                    <button class="delete" aria-label="chiudi"></button>
+                        {{ success }}
+
                 </div>
             {% endif %}
 
@@ -20,7 +28,27 @@
                 </div>
             {% endif %}
 
-            {% if gruppi_gestiti %}
+            {% if gruppo and puo_inviare %}
+                <div class="box mb-5">
+                    <h2 class="title is-5">Invia notifica</h2>
+
+                    <form method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="azione" value="invia">
+
+                        <div class="field">
+                            <label class="label">Messaggio</label>
+                            <div class="control">
+                                <textarea class="textarea" name="testo" required></textarea>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="button is-link">
+                            Invia
+                        </button>
+                    </form>
+                </div>
+            {% elif gruppi_gestiti %}
                 <div class="box mb-5">
                     <h2 class="title is-5">Invia notifica</h2>
 
@@ -59,7 +87,13 @@
 
             <div class="level">
                 <div class="level-left">
-                    <h2 class="title is-5">Ricevute</h2>
+                    <h2 class="title is-5 has-text-light">
+                        {% if gruppo %}
+                            Ricevute per questo gruppo
+                        {% else %}
+                            Ricevute
+                        {% endif %}
+                    </h2>
                 </div>
 
                 <div class="level-right">
@@ -83,9 +117,24 @@
                             {{ notifica.mittente.admin.nome }}
                             {{ notifica.mittente.admin.cognome }}
                         </p>
-                        <span>
-                            {{ notifica.data_invio|date:"d/m/Y H:i" }}
-                        </span>
+                        <div class="is-flex is-align-items-center">
+                            <span class="mr-3">
+                                {{ notifica.data_invio|date:"d/m/Y H:i" }}
+                            </span>
+
+                            <form method="POST">
+                                {% csrf_token %}
+                                <input type="hidden"
+                                       name="azione"
+                                       value="nascondi">
+                                <input type="hidden"
+                                       name="notifica_id"
+                                       value="{{ notifica.id }}">
+                                <button type="submit"
+                                        class="delete"
+                                        aria-label="chiudi"></button>
+                            </form>
+                        </div>
                     </div>
 
                     <div class="message-body">
@@ -105,9 +154,15 @@
             {% endfor %}
 
             <div class="mt-5">
-                <a href="{% url 'home' %}" class="button is-light">
-                    Torna alla home
-                </a>
+                {% if gruppo %}
+                    <a href="{% url 'dettaglio_gruppo' gruppo.id_gruppo %}" class="button is-light">
+                        Torna al gruppo
+                    </a>
+                {% else %}
+                    <a href="{% url 'home' %}" class="button is-light">
+                        Torna alla home
+                    </a>
+                {% endif %}
             </div>
         </div>
     </section>

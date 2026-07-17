@@ -28,11 +28,11 @@
                 <div class="level-left">
                     <div class="level-item">
                         <div>
-                            <h1 class="title">
+                            <h1 class="title has-text-light">
                                 {{ gruppo.nome_gruppo }}
                             </h1>
 
-                            <p class="subtitle">
+                            <p class="subtitle has-text-light-00">
                                 Dettagli del gruppo di studio
                             </p>
                         </div>
@@ -42,16 +42,24 @@
                 <div class="level-right">
                     {% if admin and gestisce_gruppo %}
                         <div class="level-item">
-                            <a href="#modifica-gruppo"
-                               class="button is-link"
-                               id="modifica-gruppo-toggle">
+                            <a href="{% url 'modifica_gruppo' gruppo.id_gruppo %}"
+                               class="button is-link">
                                 <span class="icon">
-                                    <i class="fa-solid fa-pen-to-square"
-                                       id="modifica-gruppo-toggle-icon"></i>
+                                    <i class="fa-solid fa-pen-to-square"></i>
                                 </span>
-                                <span id="modifica-gruppo-toggle-text">
-                                    Modifica gruppo
+                                <span>Modifica gruppo</span>
+                            </a>
+                        </div>
+                    {% endif %}
+
+                    {% if studente and partecipazione_utente.stato or tutor and supporto_utente or admin and gestisce_gruppo %}
+                        <div class="level-item">
+                            <a href="{% url 'notifica_gruppo' gruppo.id_gruppo %}"
+                               class="button is-info">
+                                <span class="icon">
+                                    <i class="fa-solid fa-envelope"></i>
                                 </span>
+                                <span>Notifiche</span>
                             </a>
                         </div>
                     {% endif %}
@@ -174,93 +182,6 @@
 
                         </div>
                     </div>
-
-
-                    {% if admin and gestisce_gruppo %}
-                        <div class="card mb-5" id="modifica-gruppo" hidden>
-
-                            <header class="card-header">
-                                <p class="card-header-title">
-                                    <span class="icon mr-2">
-                                        <i class="fa-solid fa-pen-to-square"></i>
-                                    </span>
-                                    Modifica gruppo
-                                </p>
-                            </header>
-
-                            <div class="card-content">
-                                <form method="POST">
-                                    {% csrf_token %}
-
-                                    <input type="hidden"
-                                           name="azione"
-                                           value="modifica_gruppo">
-
-                                    <div class="field">
-                                        <label class="label" for="nome_gruppo">
-                                            Nome gruppo
-                                        </label>
-                                        <div class="control">
-                                            <input class="input"
-                                                   type="text"
-                                                   name="nome_gruppo"
-                                                   id="nome_gruppo"
-                                                   value="{{ gruppo.nome_gruppo }}"
-                                                   required>
-                                        </div>
-                                    </div>
-
-                                    <div class="field">
-                                        <label class="label" for="descrizione">
-                                            Descrizione
-                                        </label>
-                                        <div class="control">
-                                            <textarea class="textarea"
-                                                      name="descrizione"
-                                                      id="descrizione">{{ gruppo.descrizione }}</textarea>
-                                        </div>
-                                    </div>
-
-                                    <div class="field">
-                                        <label class="label" for="link_chat">
-                                            Link chat
-                                        </label>
-                                        <div class="control">
-                                            <input class="input"
-                                                   type="url"
-                                                   name="link_chat"
-                                                   id="link_chat"
-                                                   value="{{ gruppo.link_chat }}"
-                                                   placeholder="https://...">
-                                        </div>
-                                    </div>
-
-                                    <div class="field">
-                                        <label class="label" for="max_partecipanti">
-                                            Numero massimo partecipanti
-                                        </label>
-                                        <div class="control">
-                                            <input class="input"
-                                                   type="number"
-                                                   name="max_partecipanti"
-                                                   id="max_partecipanti"
-                                                   value="{{ gruppo.max_partecipanti }}"
-                                                   min="1"
-                                                   required>
-                                        </div>
-                                    </div>
-
-                                    <button type="submit"
-                                            class="button is-link">
-                                        <span class="icon">
-                                            <i class="fa-solid fa-floppy-disk"></i>
-                                        </span>
-                                        <span>Salva modifiche</span>
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    {% endif %}
 
 
                     <!-- Area riservata -->
@@ -637,15 +558,16 @@
                                         La tua partecipazione è stata confermata.
                                     </div>
 
-                                    {% if gruppo.link_chat %}
-                                        <p>
-                                            <strong>Link chat:</strong>
-                                            <a href="{{ gruppo.link_chat }}"
-                                               target="_blank">
-                                                {{ gruppo.link_chat }}
-                                            </a>
-                                        </p>
-                                    {% endif %}
+                                    <div class="field">
+                                        <label class="label">Link chat</label>
+                                        <div class="control">
+                                            <input class="input"
+                                                   type="url"
+                                                   name="link_chat"
+                                                   value="{{ gruppo.link_chat }}"
+                                                   placeholder="https://...">
+                                        </div>
+                                    </div>
 
                                 {% else %}
 
@@ -673,10 +595,9 @@
 
                                         <button type="submit"
                                                 class="button is-link is-fullwidth">
-
-                    <span class="icon">
-                        <i class="fa-solid fa-user-plus"></i>
-                    </span>
+                                             <span class="icon">
+                                            <i class="fa-solid fa-user-plus"></i>
+                                            </span>
 
                                             <span>Richiedi partecipazione</span>
                                         </button>
@@ -702,15 +623,16 @@
                                     Stai supportando questo gruppo.
                                 </div>
 
-                                {% if gruppo.link_chat %}
-                                    <p>
-                                        <strong>Link chat:</strong>
-                                        <a href="{{ gruppo.link_chat }}"
-                                           target="_blank">
-                                            {{ gruppo.link_chat }}
-                                        </a>
-                                    </p>
-                                {% endif %}
+                                <div class="field">
+                                    <label class="label">Link chat</label>
+                                    <div class="control">
+                                        <input class="input"
+                                               type="url"
+                                               name="link_chat"
+                                               value="{{ gruppo.link_chat }}"
+                                               placeholder="https://...">
+                                    </div>
+                                </div>
 
                             {% else %}
 
@@ -746,35 +668,16 @@
                                 <div class="notification is-info">
                                     Sei l’amministratore responsabile di questo gruppo.
                                 </div>
-
-                                <form method="POST" class="mb-4">
-                                    {% csrf_token %}
-
-                                    <input type="hidden"
-                                           name="azione"
-                                           value="modifica_link_chat">
-
-                                    <div class="field">
-                                        <label class="label">Link chat</label>
-                                        <div class="control">
-                                            <input class="input"
-                                                   type="url"
-                                                   name="link_chat"
-                                                   value="{{ gruppo.link_chat }}"
-                                                   placeholder="https://...">
-                                        </div>
+                                <div class="field">
+                                    <label class="label">Link chat</label>
+                                    <div class="control">
+                                        <input class="input"
+                                               type="url"
+                                               name="link_chat"
+                                               value="{{ gruppo.link_chat }}"
+                                               placeholder="https://...">
                                     </div>
-
-                                    <button type="submit"
-                                            class="button is-link is-fullwidth">
-                                    <span class="icon">
-                                        <i class="fa-solid fa-floppy-disk"></i>
-                                    </span>
-
-                                        <span>Salva link chat</span>
-                                    </button>
-                                </form>
-
+                                </div>
                                 <form method="POST" class="mb-4">
                                     {% csrf_token %}
 
@@ -840,58 +743,5 @@
 
         </div>
     </section>
-
-    {% if admin and gestisce_gruppo %}
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                const button = document.getElementById('modifica-gruppo-toggle');
-                const buttonText = document.getElementById('modifica-gruppo-toggle-text');
-                const buttonIcon = document.getElementById('modifica-gruppo-toggle-icon');
-                const formModifica = document.getElementById('modifica-gruppo');
-
-                if (!button || !buttonText || !buttonIcon || !formModifica) {
-                    return;
-                }
-
-                function aggiornaBottoneModifica() {
-                    const modificaAttiva = window.location.hash === '#modifica-gruppo';
-
-                    formModifica.hidden = !modificaAttiva;
-                    button.classList.toggle('is-link', !modificaAttiva);
-                    button.classList.toggle('is-danger', modificaAttiva);
-                    buttonText.textContent = modificaAttiva ? 'Finito' : 'Modifica gruppo';
-                    buttonIcon.classList.toggle('fa-pen-to-square', !modificaAttiva);
-                    buttonIcon.classList.toggle('fa-check', modificaAttiva);
-                }
-
-                button.addEventListener('click', function (event) {
-                    if (window.location.hash === '#modifica-gruppo') {
-                        event.preventDefault();
-                        history.replaceState(
-                            null,
-                            '',
-                            window.location.pathname + window.location.search
-                        );
-                        aggiornaBottoneModifica();
-                        window.scrollTo({
-                            top: 0,
-                            behavior: 'smooth'
-                        });
-                        return;
-                    }
-
-                    event.preventDefault();
-                    history.replaceState(null, '', '#modifica-gruppo');
-                    aggiornaBottoneModifica();
-                    formModifica.scrollIntoView({
-                        behavior: 'smooth'
-                    });
-                });
-
-                window.addEventListener('hashchange', aggiornaBottoneModifica);
-                aggiornaBottoneModifica();
-            });
-        </script>
-    {% endif %}
 
 {% endblock %}

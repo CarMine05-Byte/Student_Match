@@ -76,8 +76,16 @@ WSGI_APPLICATION = 'StudyMatch.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+        'NAME': BASE_DIR / 'db.sqlite3'
+    },
+    'mariaDB': {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": "studymatch",
+        "USER": "root",
+        "PASSWORD": "",      # normalmente vuota in XAMPP
+        "HOST": "127.0.0.1",
+        "PORT": "3306",
+    },
 }
 
 # Password validation

@@ -1,0 +1,140 @@
+{% extends "index.html" %}
+
+{% block title %}Modifica {{ gruppo.nome_gruppo }} | StudentMatch{% endblock %}
+
+{% block content %}
+    <section class="section">
+        <div class="container">
+            {% if success %}
+                <div class="notification is-success">
+                    <button class="delete" aria-label="chiudi"></button>
+                    {{ success }}
+                </div>
+            {% endif %}
+
+            {% if error %}
+                <div class="notification is-danger">
+                    <button class="delete" aria-label="chiudi"></button>
+                    {{ error }}
+                </div>
+            {% endif %}
+
+            <div class="level mb-5">
+                <div class="level-left">
+                    <div class="level-item">
+                        <div>
+                            <h1 class="title has-text-light">
+                                Modifica gruppo
+                            </h1>
+                            <p class="subtitle has-text-light">
+                                {{ gruppo.nome_gruppo }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="level-right">
+                    <div class="level-item">
+                        <a href="{% url 'dettaglio_gruppo' gruppo.id_gruppo %}"
+                           class="button">
+                            <span class="icon">
+                                <i class="fa-solid fa-arrow-left"></i>
+                            </span>
+                            <span>Torna al gruppo</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="columns">
+                <div class="column is-two-thirds">
+                    <div class="card">
+                        <header class="card-header">
+                            <p class="card-header-title">
+                                <span class="icon mr-2">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </span>
+                                Parametri del gruppo
+                            </p>
+                        </header>
+
+                        <div class="card-content">
+                            <form method="POST">
+                                {% csrf_token %}
+
+                                <div class="field">
+                                    <label class="label" for="nome_gruppo">
+                                        Nome gruppo
+                                    </label>
+                                    <div class="control">
+                                        <input class="input"
+                                               type="text"
+                                               name="nome_gruppo"
+                                               id="nome_gruppo"
+                                               value="{{ gruppo.nome_gruppo }}"
+                                               required>
+                                    </div>
+                                </div>
+
+                                <div class="field">
+                                    <label class="label" for="descrizione">
+                                        Descrizione
+                                    </label>
+                                    <div class="control">
+                                        <textarea class="textarea"
+                                                  name="descrizione"
+                                                  id="descrizione">{{ gruppo.descrizione|default_if_none:'' }}</textarea>
+                                    </div>
+                                </div>
+
+                                <div class="field">
+                                    <label class="label" for="link_chat">
+                                        Link chat
+                                    </label>
+                                    <div class="control">
+                                        <input class="input"
+                                               type="url"
+                                               name="link_chat"
+                                               id="link_chat"
+                                               value="{{ gruppo.link_chat|default_if_none:'' }}"
+                                               placeholder="https://...">
+                                    </div>
+                                </div>
+
+                                <div class="field">
+                                    <label class="label" for="max_partecipanti">
+                                        Numero massimo partecipanti
+                                    </label>
+                                    <div class="control">
+                                        <input class="input"
+                                               type="number"
+                                               name="max_partecipanti"
+                                               id="max_partecipanti"
+                                               value="{{ gruppo.max_partecipanti }}"
+                                               min="1"
+                                               required>
+                                    </div>
+                                </div>
+
+                                <div class="buttons mt-5">
+                                    <button type="submit"
+                                            class="button is-link">
+                                        <span class="icon">
+                                            <i class="fa-solid fa-floppy-disk"></i>
+                                        </span>
+                                        <span>Salva modifiche</span>
+                                    </button>
+
+                                    <a href="{% url 'dettaglio_gruppo' gruppo.id_gruppo %}"
+                                       class="button">
+                                        Annulla
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

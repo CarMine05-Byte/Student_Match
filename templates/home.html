@@ -61,9 +61,6 @@
                                     Crea gruppo studio
                                 </a>
                             {% endif %}
-                            <a href="{% url 'notifica' %}" class="button is-info">
-                                Notifiche
-                            </a>
                             <a href="{% url 'profile' %}" class="button is-link">
                                 Profilo
                             </a>
@@ -79,7 +76,7 @@
                 {% if studente %}
                     <!-- Gruppi Disponibili -->
                     <div class="column is-two-thirds">
-                        <h2 class="title is-4 has-text-white">Gruppi Disponibili</h2>
+                        <h2 class="title is-4 has-text-light-00">Gruppi Disponibili</h2>
                         {% for gruppo in grup_stud %}
                             <div class="box">
                                 <h3 class="title is-5">{{ gruppo.nome_gruppo }}</h3>
@@ -107,7 +104,7 @@
 
                     <!-- I miei Gruppi -->
                     <div class="column">
-                        <h2 class="title is-4">I miei Gruppi</h2>
+                        <h2 class="title is-4 has-text-light-00">I miei Gruppi</h2>
 
                         {% for partecipazione in part_stud %}
                             <div class="box">
@@ -134,7 +131,7 @@
                 {% elif tutor %}
                     <!-- Gruppi Disponibili -->
                     <div class="column is-two-thirds">
-                        <h2 class="title is-4">Gruppi Disponibili</h2>
+                        <h2 class="title is-4 has-text-light-00">Gruppi Disponibili</h2>
                         {% for gruppo in grup_disp_tut %}
                             <div class="box">
                                 <h3 class="title is-5">{{ gruppo.nome_gruppo }}</h3>
@@ -162,7 +159,7 @@
 
                     <!-- I miei Gruppi -->
                     <div class="column">
-                        <h2 class="title is-4">I miei Gruppi</h2>
+                        <h2 class="title is-4 has-text-light-00">I miei Gruppi</h2>
 
                         {% for supporto in supp_tut %}
                             <div class="box">
@@ -191,7 +188,7 @@
                 {% elif admin %}
                     <!-- Gruppi Disponibili -->
                     <div class="column is-two-thirds">
-                        <h2 class="title is-4">Gruppi Disponibili</h2>
+                        <h2 class="title is-4 has-text-light-00">Gruppi Disponibili</h2>
                         {% for gruppo in gruppi_disp %}
                             <div class="box">
                                 <h3 class="title is-5">{{ gruppo.nome_gruppo }}</h3>
@@ -219,7 +216,7 @@
 
                     <!-- I miei Gruppi -->
                     <div class="column">
-                        <h2 class="title is-4">I miei Gruppi</h2>
+                        <h2 class="title is-4 has-text-light-00">I miei Gruppi</h2>
 
                         {% for gruppo in grup_admin %}
                             <div class="box">

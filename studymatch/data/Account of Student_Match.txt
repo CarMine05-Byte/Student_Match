@@ -1,12 +1,61 @@
+#STUDENTI
+#1Luca Martin
+Luc.martin023
+CodeStudent2026
 
+#2
+a.neri_netsec
+FirewallGuard2026
+
+#3
+c.volpi_redteam
+PenTestPro2026#
+
+#4
+s.barbieri_crypto
+EncryptData2026$
+
+#5
+user_8x92k
+Uniparthenope_Test_2026!
+
+#6
+studente_dev_x92
+Zy8#nL4$vB9q
+
+#7
+#TUTOR
+soprano_olong90
+TestPass123!
+
+#8
 tutor.demo@test.it
 tutor_demo_user
 TestAccount2026#
 
+#9
+g.conti_dev
+AlgoStruct2026#Safe
 
-soprano_olong90@test.local
-soprano_olong90
-TestPass123!
-Scienze Matematiche, Fisiche e Naturali
-Dipartimento di Matematica
-Fisica
+#10
+a.ferrari_elec
+CircuitDesign2026!
+
+#11
+l.bianchi_mgmt
+ProcessOpt2026!
+
+#12
+#ADMIN
+m.rossi_test01
+aB3dE5gH7j
+
+#13
+test_user_7z3q
+Qw9#mK2$pL5x
+
+#14
+d.romano_admin
+SysAdminSecure2026!
+
+

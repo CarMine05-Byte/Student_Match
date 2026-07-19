@@ -23,7 +23,7 @@ class Tutor(models.Model):
     tutor = models.ForeignKey(Utente, on_delete=models.CASCADE, related_name="tutor_profile")
     dipartimento = models.CharField(max_length=128)
     area_competenza = models.CharField(max_length=128)
-    laurea = models.CharField(max_length=100, null=True, blank=True, default=1)
+    laurea = models.CharField(max_length=100, null=True, blank=True)
 
 
 class Admin(models.Model):
